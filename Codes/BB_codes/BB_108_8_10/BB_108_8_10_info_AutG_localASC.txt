@@ -1,0 +1,24 @@
+Fully-verified automorphism group used for the Local-ASC depth-7 solve of BB_108_8_10
+(IBM's published bivariate bicycle code, ASC paper Table II).
+
+Detection method: src/Coset2BGA/local_asc_Coset2BGA.py automorphisms() -- Tier 1b (abelian, non-cyclic).
+Two-block group-algebra structure (H_X=[A|B], H_Z=[B^T|A^T]): the WHOLE base group G
+embeds in Aut(T) for free via simultaneous left-translation of checks and qubits.
+Verification is exhaustive, not sampled: every candidate generator's induced map is
+checked against EVERY edge of Hx and Hz (detect_two_block_abelian's verify()), so a
+false positive is structurally impossible -- this is a genuine, fully-verified
+automorphism group, not an assumption. No VF2/nauty search was needed or used.
+
+Group: G = Z_6 x Z_9  (mixed-radix storage order confirmed to match Hx/Hz's own
+qubit/check indexing -- i.e. index i in each block IS group element elem_of(i, [6, 9])).
+|Aut(T)| = |G| = 54
+Element orders present: [1, 2, 3, 6, 9, 18]
+
+Generators (2, one per cyclic factor -- every other element is a product of these):
+  generator g_0: unit shift along factor 0 (Z_6), shift=(1, 0), order=6
+  generator g_1: unit shift along factor 1 (Z_9), shift=(0, 1), order=9
+
+Used for: local_asc_generic.orbit_map/solve_equivariant/lift_validate at depth D=7.
+Orbits: 12 orbit variables covering 648 Tanner-graph edges (648/12 = 54 edges/orbit).
+Schedule: schedules/BB_108_8_10_schedule_localASC_depth7.csv (D=7 OPTIMAL, 0 lift conflicts).
+Detection wall time: 40.63 ms (zero VF2 search).

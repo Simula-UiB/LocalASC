@@ -1,4 +1,4 @@
-import sys, argparse, os
+import sys, argparse, os, json
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -44,7 +44,7 @@ def compute_circuit_distance(circuit : stim.Circuit, exact_method : bool = False
 
     code_dict = circuitDistance(n_circuit,method,params,seed)
 
-    print(f"Circuit with number of qubits {code_dict['n']} has distance approximation {code_dict['d']}")
+    print(f"Circuit with numer of faults {code_dict['n']} has distance approximation {code_dict['d']}")
 
     return code_dict
 
@@ -84,7 +84,31 @@ if __name__ == "__main__":
     print(f"Computing distance under noise model ='{args.noise}' and exact_method= {args.exact}...")
     result = compute_circuit_distance(circuit, exact_method=args.exact, noise_type=args.noise)
     print("Done!")
+
     if args.exact:
-        print(f"Found circuit distance = {result['d']}")
+        summary_msg = f"Found circuit distance = {result.get('d', 'N/A')}"
     else:
-        print(f"Found circuit dfistanme upper bound {result['d']}")
+        summary_msg = f"Found circuit distance upper bound {result.get('d', 'N/A')}"
+
+    print(summary_msg)
+    
+    base_filename = f"{args.prefix}_n{args.n}_k{args.k}_d{args.d}_{args.noise}"
+    json_path = os.path.join(args.outdir, f"{base_filename}_results.json")
+    txt_path = os.path.join(args.outdir, f"{base_filename}_summary.txt")
+    
+    with open(json_path, "w") as json_file:
+        json.dump(result, json_file, indent=4)
+        
+    with open(txt_path, "w") as txt_file:
+        txt_file.write(f"--- Circuit Distance Computation ---\n")
+        txt_file.write(f"Circuit File: {filepath}\n")
+        txt_file.write(f"Noise Model: {args.noise}\n")
+        txt_file.write(f"Exact Method: {args.exact}\n")
+        txt_file.write(f"------------------------------------\n")
+        txt_file.write(f"{summary_msg}\n\n")
+        txt_file.write(f"Full Result Dictionary:\n")
+        txt_file.write(json.dumps(result, indent=4))
+        
+    print(f"\nResults successfully saved to:")
+    print(f"  - Dictionary: {json_path}")
+    print(f"  - Text Log:   {txt_path}")
