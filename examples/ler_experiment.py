@@ -208,15 +208,22 @@ if __name__ == "__main__":
     custom_filename = f"{args.name}_n{args.n}_k{args.k}_d{args.d}_nshots{args.shots}.json"
 
     if args.plot_only:
-        print(f"Plotting only mode activated. Looking for {custom_filename}...")
+        custom_filenames = [f'{name}_n{args.n}_k{args.k}_d{args.d}_nshots{args.shots}.json' for name in ['ATB_official', 'localASC', 'fullASC']]
+        print(f"Plotting only mode activated. Looking for files")
+        print(custom_filenames)
         # Make sure the plot_multiple_jsons function from the previous step is defined above
-        plot_multiple_jsons([custom_filename], custom_filename.replace('.json', '.png'))
+        plot_multiple_jsons(custom_filenames)
         
     else:
         # Circuit Directions
         if args.n == 48:
             folder_name = "Codes/48_4_Coset2BGA/circuits/"
-            file_direction = folder_name + f'48_4_Coset2BGA_circuit_{args.name}_depth6_mem{args.basis}.stim'
+            if args.name == 'ATB_official':
+                depth = 7
+            else:
+                depth = 6
+
+            file_direction = folder_name + f'48_4_Coset2BGA_circuit_{args.name}_depth{depth}_mem{args.basis}.stim'
         else:
             folder_name = f"Codes/BB_codes/BB_{args.n}_{args.k}_{args.d}/circuits/"
 
