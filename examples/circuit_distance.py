@@ -9,6 +9,13 @@ from codedistance import circuitDistance
 import stim
 from circuit_builder.local_ASC_scheduler import add_circuit_level_noise, add_phenomenological_noise
 
+def json_numpy_serializer(obj):
+    """Converts numpy arrays and scalars into standard Python types for JSON."""
+    if hasattr(obj, 'tolist'):
+        return obj.tolist()  # Converts arrays to lists
+    if hasattr(obj, 'item'):
+        return obj.item()    # Converts numpy scalars (int64, etc.) to standard ints/floats
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
 def compute_circuit_distance(circuit : stim.Circuit, exact_method : bool = False, noise_type : str = 'CLN'):
@@ -19,17 +26,14 @@ def compute_circuit_distance(circuit : stim.Circuit, exact_method : bool = False
     #Placeholder for adding noise locations
     p = 0.00001
 
-    if noise_type == 'CLN':
-        n_circuit = add_circuit_level_noise(circuit,p,p,p)
-    elif noise_type == 'PN':
-        n_circuit = add_phenomenological_noise(circuit)
+    n_circuit = add_circuit_level_noise(circuit,p,p,p)
 
     
     #One can modify the parameters to fit the desired computation
     params = {
     'iterCount': 1000,     ## number of iterations - eg QDistRnd, decoderDist
     'maxTime': 3600*8,      ## max runtime for CLI methods (eg SAT, m4ri, )
-    'nThreads': 8,          ## cater for multi-threaded methods
+    'nThreads':    64,          ## cater for multi-threaded methods
     'LOCheck': 0,            ## check logical operators
     'filterCircuit': False
     }
@@ -38,13 +42,14 @@ def compute_circuit_distance(circuit : stim.Circuit, exact_method : bool = False
     seed = 42
 
     if exact_method:
-        method = 'BZDistMW'
+       #method = 'BZDistMW'
+       method = 'MIPDist'
     else:
         method = 'QDistRndMW'
 
     code_dict = circuitDistance(n_circuit,method,params,seed)
 
-    print(f"Circuit with numer of faults {code_dict['n']} has distance approximation {code_dict['d']}")
+    print(f"Circuit with number of faults {code_dict['n']} has distance approximation {code_dict['d']}")
 
     return code_dict
 
@@ -58,14 +63,22 @@ if __name__ == "__main__":
     
     # Optional parameters
     default_codes_dir = os.path.join(project_root, "Codes")
-    parser.add_argument("--dir", type=str, default=default_codes_dir, help="Directory containing the stim files")
+    parser.add_argument("--dir", type=str, default=default_codes_dir,  help="Directory containing the stim files")
     parser.add_argument("--prefix", type=str, default="code", help="Prefix for the file name (e.g., 'surface', 'color')")
     parser.add_argument("--noise", type=str, choices=['CLN', 'PN'], default='CLN', help="Noise model type")
     parser.add_argument("--exact", action="store_true", help="Use exact BZ algorithm instead of approximate")
-    
+    parser.add_argument("--outdir", type=str, default=os.path.join(project_root, "results"), help="Output directory for results")
+
+
     args = parser.parse_args()
 
-    filename = f"{args.prefix}_n{args.n}_k{args.k}_d{args.d}.stim"
+    if args.n == 48:
+        filename = f"{args.n}_{args.k}_Coset2BGA/circuits/{args.n}_{args.k}_Coset2BGA_circuit_{args.prefix}_depth7_memZ.stim"
+    elif args.n > 48:
+        filename = f"BB_codes/BB_{args.n}_{args.k}_{args.d}/circuits/BB_{args.n}_{args.k}_{args.d}_{args.prefix}_depth7_memZ.stim"
+    else:
+        filename = f"code_n{args.n}_k{args.k}_d{args.d}.stim"
+
     filepath = os.path.join(args.dir, filename)
 
     if not os.path.exists(filepath):
@@ -97,7 +110,7 @@ if __name__ == "__main__":
     txt_path = os.path.join(args.outdir, f"{base_filename}_summary.txt")
     
     with open(json_path, "w") as json_file:
-        json.dump(result, json_file, indent=4)
+        json.dump(result, json_file, indent=4, default=json_numpy_serializer)
         
     with open(txt_path, "w") as txt_file:
         txt_file.write(f"--- Circuit Distance Computation ---\n")
@@ -107,7 +120,7 @@ if __name__ == "__main__":
         txt_file.write(f"------------------------------------\n")
         txt_file.write(f"{summary_msg}\n\n")
         txt_file.write(f"Full Result Dictionary:\n")
-        txt_file.write(json.dumps(result, indent=4))
+        txt_file.write(json.dumps(result, indent=4, default=json_numpy_serializer))
         
     print(f"\nResults successfully saved to:")
     print(f"  - Dictionary: {json_path}")

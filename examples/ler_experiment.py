@@ -1,5 +1,7 @@
 import os
 import sys
+import multiprocessing
+
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.append(project_root)
@@ -83,7 +85,7 @@ def sinter_decoding_experiment(circ, phys_err_probs, rounds, shots, code_distanc
         sinter_tasks.append(task)
     
     stats = sinter.collect(
-        num_workers=16,               
+        num_workers=multiprocessing.cpu_count(),               
         tasks=sinter_tasks,       
         decoders=["bposd"],          
         max_errors=max_errors, 
@@ -185,7 +187,7 @@ def plot_multiple_jsons(filenames: list, output_image: str = "comparison_plot.pn
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    phys_err_probs = np.logspace(-5, -1, 15)
+    phys_err_probs = np.logspace(-5, -2, 20)
 
     # Required parameters
     parser.add_argument("-n", type=int, required=True, help="Number of physical qubits (n)")
@@ -200,11 +202,13 @@ if __name__ == "__main__":
     parser.add_argument("-seed", type=int, required=False, default=42, help="Random seed")
     parser.add_argument("-basis", type=str, default='Z', help="Basis for memory experiment")
 
+    parser.add_argument("--debug", action="store_true", help="Debug mode")
+
     parser.add_argument("--plot_only", action="store_true", help="Skip the simulation and only plot the existing JSON file")
 
     args = parser.parse_args()
-    
-    # Construct a highly descriptive filename combining all key parameters
+    x = np.random.randint(0,1000)
+    # 
     custom_filename = f"{args.name}_n{args.n}_k{args.k}_d{args.d}_nshots{args.shots}.json"
 
     if args.plot_only:
@@ -235,21 +239,33 @@ if __name__ == "__main__":
                 file_direction = folder_name + f'BB_{args.n}_{args.k}_{args.d}_fullASC_depth7_mem{args.basis}.stim'
 
         circ = stim.Circuit.from_file(file_direction)
+        if args.debug:
+            print(f"Number of observables: {circ.num_observables}")
 
-        rounds = args.d # Assuming rounds equals distance, adjust if necessary
+            circ = add_circuit_level_noise(circ, 0.00001, 0.00001, 0.00001)
 
-        # Pass the generated filename into the function
-        sinter_decoding_experiment(
-            circ=circ,
-            phys_err_probs=phys_err_probs,
-            rounds=rounds,
-            shots=args.shots,
-            code_distance=args.d,
-            output_filename=custom_filename,
-            name=args.name,
-            max_errors=args.max_errors,
-            max_iter=args.max_iter,
-            seed=args.seed
-        )
+            dem = circ.detector_error_model(decompose_errors=False)
+            H, O, pr = dem_to_matrices(dem)
+            print(H.shape)
+            print(O.shape)
+            print(f"The matrices are orthogonal {O @ H.T}")
+
+
+        else:
+            rounds = args.d # Assuming rounds equals distance, adjust if necessary
+
+            print(f"Starting decoding experiment with {args.name} circuit, {args.shots} shots per error level")
+            sinter_decoding_experiment(
+                circ=circ,
+                phys_err_probs=phys_err_probs,
+                rounds=rounds,
+                shots=args.shots,
+                code_distance=args.d,
+                output_filename=custom_filename,
+                name=args.name,
+                max_errors=args.max_errors,
+                max_iter=args.max_iter,
+                seed=args.seed
+            )
 
      
