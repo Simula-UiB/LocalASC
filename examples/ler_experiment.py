@@ -11,13 +11,12 @@ import json
 from ldpc.bposd_decoder import BpOsdDecoder
 from scipy.sparse import csc_matrix
 import time
-from circuit_builder.local_ASC_scheduler import add_circuit_level_noise
-from ldpc.sinter_decoders.sinter_bposd_decoder import SinterBpOsdDecoder
+from circuit_builder.apply_noise import add_circuit_level_noise
 import sinter
 import argparse
 import stim
 import matplotlib.pyplot as plt
-
+from stimbposd import BPOSD
 
 
 
@@ -44,150 +43,69 @@ def dem_to_matrices(dem):
     O = csc_matrix((np.ones(len(oi), np.uint8), (oi, oc)), shape=(no, len(keys)))
     return H, O, np.array(pr)
 
-def run_bposd_decoder(circ,shots,seed=42):
-    dem = circ.detector_error_model(decompose_errors=False)
-    H, O, pr = dem_to_matrices(dem)
-    dec = BpOsdDecoder(H, error_channel=list(pr), max_iter=20,
-                        bp_method='minimum_sum', ms_scaling_factor=0.625,
-                        osd_method='OSD_0', osd_order=0)
-    sampler = circ.compile_detector_sampler(seed=seed)
-    dets, obs = sampler.sample(shots, separate_observables=True)
-    Od = O.toarray().astype(np.uint8)
-    nerr = 0; t0 = time.time()
-    for s in range(shots):
-            e = dec.decode(dets[s].astype(np.uint8))
-            pred = (Od @ e) % 2
-            if np.any(pred != obs[s]): nerr += 1
-    dt = time.time()-t0
-    return nerr, shots, dt, H.shape
-
-def sinter_decoding_experiment(circ, phys_err_probs, rounds, shots, code_distance, output_filename, basis='Z', name='Code', max_errors=10000, max_iter=100, seed=42):
-    sinter_tasks = []
-    
+def run_batch_bposd_experiment(
+    base_circ: stim.Circuit,
+    phys_err_probs: list[float],
+    output_filepath: str,
+    name: str,
+    n: int,
+    k: int,
+    d: int,
+    basis: str,
+    num_shots: int,
+    max_iter: int,
+    seed: int
+):
     for p in phys_err_probs:
-
-        noisy_circ = add_circuit_level_noise(circ, p1q=p, p2q=p, p_meas=p)
+        print(f"\nEvaluating p = {p:.4e}...")
+        start_time = time.perf_counter()
         
-        dem = noisy_circ.detector_error_model(decompose_errors=False)
-        shp = (dem.num_detectors, dem.num_observables)
+        # 1. Apply noise
+        noisy_circ, idle_count = add_circuit_level_noise(base_circ, p1q=p, p2q=p, p_meas=p)
         
-        task = sinter.Task(
-                circuit=noisy_circ,
-                json_metadata={
-                   'p': p,                  
-                   'd': code_distance,                
-                   'rounds': rounds,
-                   'shp': shp,
-                   'shots': shots
-                }
-            )
-
-        sinter_tasks.append(task)
-    
-    stats = sinter.collect(
-        num_workers=multiprocessing.cpu_count(),               
-        tasks=sinter_tasks,       
-        decoders=["bposd"],          
-        max_errors=max_errors, 
-        max_shots=shots,           
-        custom_decoders={
-            "bposd": SinterBpOsdDecoder(
-                max_iter=max_iter, 
-                bp_method="ms", 
-                osd_method="osd0"
-            )
-        }
-    )
-
-    for stat in stats:
-        p = stat.json_metadata['p']
-        shp = stat.json_metadata['shp']
-        nerr = stat.errors
-        ns = stat.shots
+        # 2. Sample the circuit for syndromes (shots) and actual observables
+        sampler = noisy_circ.compile_detector_sampler(seed=seed)
+        shots, observables = sampler.sample(num_shots, separate_observables=True, bit_packed=False)
         
-        dt = stat.seconds 
+        # 3. Initialize decoder directly from DEM and decode batch
+        decoder = BPOSD(noisy_circ.detector_error_model(decompose_errors=True), max_bp_iters=max_iter)
+        predicted_observables = decoder.decode_batch(shots)
         
-        ler = (nerr / ns) if ns > 0 else 0.0
-        
-        rec = dict(name=name, p=p, shots=ns, errors=nerr, seed=seed, basis=basis, decode_s=round(dt, 1))
-        
-        # Write to the dynamically generated filename
-        with open(output_filename, 'a') as f: 
-            f.write(json.dumps(rec) + '\n')
-            
-        print(f"{name} mem-{basis} p={p}: {nerr}/{ns} logical errors (LER={ler:.4g}, decode {dt:.0f}s, DEM {shp})")
-
-def plot_multiple_jsons(filenames: list, output_image: str = "comparison_plot.png"):
-    plt.figure(figsize=(9, 6))
-    
-    # Define distinct styles for your expected circuit types
-    style_map = {
-        "ATB": {"color": "blue", "marker": "o"},
-        "localASC": {"color": "green", "marker": "s"},
-        "fullASC": {"color": "red", "marker": "^"}
-    }
-
-    for filename in filenames:
-        if not os.path.exists(filename):
-            print(f"Warning: File {filename} not found. Skipping.")
-            continue
-            
-        plot_data = {'p': [], 'ler': []}
-        label_name = "Unknown"
-        
-        with open(filename, 'r') as f:
-            for line in f:
-                if not line.strip():
-                    continue
-                    
-                record = json.loads(line)
-                p = record['p']
-                errors = record['errors']
-                shots = record['shots']
-                label_name = record.get('name', 'Code') # ATB, localASC, or fullASC
+        # 4. Vectorized error counting
+        num_mistakes = np.sum(np.any(predicted_observables != observables, axis=1))
                 
-                ler = errors / shots if shots > 0 else 0
-                if ler > 0: # Filter out 0 errors for log scale
-                    plot_data['p'].append(p)
-                    plot_data['ler'].append(ler)
+        elapsed_time = time.perf_counter() - start_time
+        ler = num_mistakes / num_shots
         
-        # Sort points by physical error rate
-        sorted_points = sorted(zip(plot_data['p'], plot_data['ler']))
-        if not sorted_points:
-            continue
-            
-        x_p = [pt[0] for pt in sorted_points]
-        y_ler = [pt[1] for pt in sorted_points]
+        print(f"  > {num_mistakes}/{num_shots} mistakes (LER = {ler:.4g})")
+        print(f"  > Compute Time   : {elapsed_time:.2f}s")
         
-        # Apply specific styling if it matches your expected names
-        style = style_map.get(label_name, {"color": "black", "marker": "x"})
+        # 5. Format and save metadata to JSON
+        record = {
+            "name": name,
+            "decoder": "bposd_batch",
+            "n": n,
+            "k": k,
+            "d": d,
+            "rounds": d,
+            "basis": basis,
+            "p": p,
+            "shots": num_shots,
+            "errors": int(num_mistakes),
+            "ler": float(ler),
+            "seed": seed,
+            "max_iter": max_iter,
+            "decode_s": round(elapsed_time, 2)
+        }
         
-        # Add 'd' (distance) or other params to the label if you extract it from filename
-        # Assuming filename convention: name_n{n}_k{k}_d{d}_nshots{shots}.json
-        parts = os.path.basename(filename).split('_')
-        d_val = next((part for part in parts if part.startswith('d')), "d?")
-        display_label = f"{label_name} ({d_val})"
-        
-        plt.plot(x_p, y_ler, label=display_label, color=style["color"], marker=style["marker"], linestyle='-')
-
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.xlabel('Physical Error Rate (p)', fontsize=12)
-    plt.ylabel('Logical Error Rate (LER)', fontsize=12)
-    plt.title('Code Comparison: ATB vs localASC vs fullASC', fontsize=14)
-    plt.grid(True, which="both", linestyle="--", alpha=0.6)
-    plt.legend()
-    plt.tight_layout()
-    
-    plt.savefig(output_image, dpi=300)
-    print(f"Plot saved successfully as: {output_image}")
-    plt.show()
+        with open(output_filepath, 'a') as f: 
+            f.write(json.dumps(record) + '\n')
+    print(f"Circuit with {idle_count} idle errors LER computed")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
-    phys_err_probs = np.logspace(-5, -2, 20)
+    phys_err_probs = list(np.logspace(-4, -2, 7, dtype=float))
 
     # Required parameters
     parser.add_argument("-n", type=int, required=True, help="Number of physical qubits (n)")
@@ -197,75 +115,53 @@ if __name__ == "__main__":
 
     # Optional parameters
     parser.add_argument("-shots", type=int, required=False, default=1000, help="Number of shots")
-    parser.add_argument("-max_errors", type=int, required=False, default=1000, help="Maximum number of errors")
-    parser.add_argument("-max_iter", type=int, required=False, default=100, help="Maximum number of iterations")
+    parser.add_argument("-max_iter", type=int, required=False, default=20, help="Maximum number of BP iterations")
     parser.add_argument("-seed", type=int, required=False, default=42, help="Random seed")
     parser.add_argument("-basis", type=str, default='Z', help="Basis for memory experiment")
 
-    parser.add_argument("--debug", action="store_true", help="Debug mode")
-
-    parser.add_argument("--plot_only", action="store_true", help="Skip the simulation and only plot the existing JSON file")
+    parser.add_argument("--free", action="store_true", help= "Choose one of four circuits free_depth7_rounds7_mem, depth7_rounds7_mem, free_depth7_mem or depth7_mem")
+    parser.add_argument("--rounds", action="store_true", help= "Choose one of four circuits free_depth7_rounds7_mem, depth7_rounds7_mem, free_depth7_mem or depth7_mem")
 
     args = parser.parse_args()
-    x = np.random.randint(0,1000)
-    # 
-    custom_filename = f"{args.name}_n{args.n}_k{args.k}_d{args.d}_nshots{args.shots}.json"
+    
+    # Create the results directory and filepath
+    output_dir = "results"
+    os.makedirs(output_dir, exist_ok=True)
+    custom_filepath = os.path.join(output_dir, f"{args.name}_n{args.n}_k{args.k}_d{args.d}_nshots{args.shots}.json")
 
-    if args.plot_only:
-        custom_filenames = [f'{name}_n{args.n}_k{args.k}_d{args.d}_nshots{args.shots}.json' for name in ['ATB_official', 'localASC', 'fullASC']]
-        print(f"Plotting only mode activated. Looking for files")
-        print(custom_filenames)
-        # Make sure the plot_multiple_jsons function from the previous step is defined above
-        plot_multiple_jsons(custom_filenames)
-        
+    # Circuit Directions
+    if args.n == 48:
+        folder_name = "Codes/48_4_Coset2BGA/circuits/"
+        depth = 7 if args.name == 'ATB_official' else 6
+        file_direction = folder_name + f'48_4_Coset2BGA_circuit_{args.name}_depth{depth}_mem{args.basis}.stim'
     else:
-        # Circuit Directions
-        if args.n == 48:
-            folder_name = "Codes/48_4_Coset2BGA/circuits/"
-            if args.name == 'ATB_official':
-                depth = 7
-            else:
-                depth = 6
-
-            file_direction = folder_name + f'48_4_Coset2BGA_circuit_{args.name}_depth{depth}_mem{args.basis}.stim'
+        folder_name = f"Codes/BB_codes/BB_{args.n}_{args.k}_{args.d}/circuits_ASC/"
+        name_tag = 'ATB_official' if args.name == 'ATB' else args.name
+        file_pref = folder_name + f'BB_{args.n}_{args.k}_{args.d}_circuit_{name_tag}_'
+        if args.free and args.rounds:
+            file_direction = file_pref + f'free_depth7_rounds7_mem{args.basis}.stim'
+        elif args.free and not args.rounds:
+            file_direction = file_pref + f'free_depth7_mem{args.basis}.stim'
+        elif not args.free and args.rounds:
+            file_direction = file_pref + f'depth7_rounds7_mem{args.basis}.stim'
         else:
-            folder_name = f"Codes/BB_codes/BB_{args.n}_{args.k}_{args.d}/circuits/"
+            file_direction = file_pref + f'depth7_mem{args.basis}.stim'
 
-            if args.name == 'ATB':
-                file_direction = folder_name + f'BB_{args.n}_{args.k}_{args.d}_ATB_official_depth7_mem{args.basis}.stim'
-            elif args.name == 'localASC':
-                file_direction = folder_name + f'BB_{args.n}_{args.k}_{args.d}_localASC_depth7_mem{args.basis}.stim'
-            elif args.name == 'fullASC':
-                file_direction = folder_name + f'BB_{args.n}_{args.k}_{args.d}_fullASC_depth7_mem{args.basis}.stim'
-
-        circ = stim.Circuit.from_file(file_direction)
-        if args.debug:
-            print(f"Number of observables: {circ.num_observables}")
-
-            circ = add_circuit_level_noise(circ, 0.00001, 0.00001, 0.00001)
-
-            dem = circ.detector_error_model(decompose_errors=False)
-            H, O, pr = dem_to_matrices(dem)
-            print(H.shape)
-            print(O.shape)
-            print(f"The matrices are orthogonal {O @ H.T}")
-
-
-        else:
-            rounds = args.d # Assuming rounds equals distance, adjust if necessary
-
-            print(f"Starting decoding experiment with {args.name} circuit, {args.shots} shots per error level")
-            sinter_decoding_experiment(
-                circ=circ,
-                phys_err_probs=phys_err_probs,
-                rounds=rounds,
-                shots=args.shots,
-                code_distance=args.d,
-                output_filename=custom_filename,
-                name=args.name,
-                max_errors=args.max_errors,
-                max_iter=args.max_iter,
-                seed=args.seed
-            )
-
-     
+    base_circ = stim.Circuit.from_file(file_direction)
+    
+    print(f"Starting batch BP-OSD decoding for {args.name} at {file_direction} \n (Results -> {custom_filepath})")
+    
+    # Execute the experiment
+    run_batch_bposd_experiment(
+        base_circ=base_circ,
+        phys_err_probs=phys_err_probs,
+        output_filepath=custom_filepath,
+        name=args.name,
+        n=args.n,
+        k=args.k,
+        d=args.d,
+        basis=args.basis,
+        num_shots=args.shots,
+        max_iter=args.max_iter,
+        seed=args.seed
+    )

@@ -7,7 +7,7 @@ if project_root not in sys.path:
 
 from codedistance import circuitDistance
 import stim
-from circuit_builder.local_ASC_scheduler import add_circuit_level_noise, add_phenomenological_noise
+from circuit_builder.apply_noise import add_circuit_level_noise
 
 def json_numpy_serializer(obj):
     """Converts numpy arrays and scalars into standard Python types for JSON."""
@@ -18,7 +18,7 @@ def json_numpy_serializer(obj):
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
-def compute_circuit_distance(circuit : stim.Circuit, exact_method : bool = False, noise_type : str = 'CLN'):
+def compute_circuit_distance(circuit : stim.Circuit, exact_method : bool = False):
     """
     Given a noiseless circuit computes the circuit distance under the specified noise model (Circuit-Level or Phenomenological) using an exact or approximate method.
     Exact method is BZ algorithm and approximative is QdistRnDMW from webster's codedistance package.
@@ -65,7 +65,6 @@ if __name__ == "__main__":
     default_codes_dir = os.path.join(project_root, "Codes")
     parser.add_argument("--dir", type=str, default=default_codes_dir,  help="Directory containing the stim files")
     parser.add_argument("--prefix", type=str, default="code", help="Prefix for the file name (e.g., 'surface', 'color')")
-    parser.add_argument("--noise", type=str, choices=['CLN', 'PN'], default='CLN', help="Noise model type")
     parser.add_argument("--exact", action="store_true", help="Use exact BZ algorithm instead of approximate")
     parser.add_argument("--outdir", type=str, default=os.path.join(project_root, "results"), help="Output directory for results")
 
@@ -95,7 +94,7 @@ if __name__ == "__main__":
 
     # Run the distance computation
     print(f"Computing distance under noise model ='{args.noise}' and exact_method= {args.exact}...")
-    result = compute_circuit_distance(circuit, exact_method=args.exact, noise_type=args.noise)
+    result = compute_circuit_distance(circuit, exact_method=args.exact)
     print("Done!")
 
     if args.exact:
@@ -115,7 +114,6 @@ if __name__ == "__main__":
     with open(txt_path, "w") as txt_file:
         txt_file.write(f"--- Circuit Distance Computation ---\n")
         txt_file.write(f"Circuit File: {filepath}\n")
-        txt_file.write(f"Noise Model: {args.noise}\n")
         txt_file.write(f"Exact Method: {args.exact}\n")
         txt_file.write(f"------------------------------------\n")
         txt_file.write(f"{summary_msg}\n\n")
