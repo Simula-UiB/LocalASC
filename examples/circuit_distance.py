@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser.add_argument("-n", type=int, required=True, help="Number of physical qubits (n)")
     parser.add_argument("-k", type=int, required=True, help="Number of logical qubits (k)")
     parser.add_argument("-d", type=int, required=True, help="Code distance (d)")
-    parser.add_argument("-name", type=str, required=True, help="Prefix for the file name (e.g., 'surface', 'color')")
+    parser.add_argument("-prefix", type=str, required=True, help="Prefix for the file name")
 
     # Optional parameters
     default_codes_dir = os.path.join(project_root, "Codes")
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     elif args.n > 48:
         filename = f"BB_codes/BB_{args.n}_{args.k}_{args.d}/circuits/BB_{args.n}_{args.k}_{args.d}_{args.prefix}_depth7_memZ.stim"
     else:
-        filename = f"code_n{args.n}_k{args.k}_d{args.d}.stim"
+        filename = f"{args.n}_{args.k}/circuits/TT_{args.n}_{args.k}_d{args.d}_{args.prefix}_memZ.stim"
 
     filepath = os.path.join(args.dir, filename)
 

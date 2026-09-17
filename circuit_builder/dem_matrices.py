@@ -125,6 +125,12 @@ if __name__ == "__main__":
     out_dir = os.path.join(root_dir, "results")
     os.makedirs(out_dir, exist_ok=True)
 
+    txt_dir = os.path.join(out_dir, "txt")
+    os.makedirs(txt_dir, exist_ok=True)
+
+    alist_dir = os.path.join(out_dir, "alist")
+    os.makedirs(alist_dir, exist_ok=True)
+
     print(f"Processing {args.filepath}...")
     H_dem, L = dem_matrices_saver(args.filepath)
 
@@ -132,10 +138,10 @@ if __name__ == "__main__":
     print(f"Extracted L: {L.shape[0]} observables x {L.shape[1]} errors")
 
     # Define output paths strictly inside the root/results folder
-    h_alist_path = os.path.join(out_dir, f"{base_name}_H.alist")
-    l_alist_path = os.path.join(out_dir, f"{base_name}_L.alist")
-    h_txt_path = os.path.join(out_dir, f"{base_name}_H.txt")
-    l_txt_path = os.path.join(out_dir, f"{base_name}_L.txt")
+    h_alist_path = os.path.join(alist_dir, f"{base_name}_H_dem.alist")
+    l_alist_path = os.path.join(alist_dir, f"{base_name}_L.alist")
+    h_txt_path = os.path.join(txt_dir, f"{base_name}_H_dem.txt")
+    l_txt_path = os.path.join(txt_dir, f"{base_name}_L.txt")
 
     print(f"Saving files to {out_dir}/ ...")
     save_to_alist(H_dem, h_alist_path)
