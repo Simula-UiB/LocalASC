@@ -5,6 +5,7 @@ project_root = os.path.dirname(current_dir)
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+import numpy as np
 from codedistance import circuitDistance
 import stim
 from circuit_builder.apply_noise import add_circuit_level_noise
@@ -26,20 +27,20 @@ def compute_circuit_distance(circuit : stim.Circuit, exact_method : bool = False
     #Placeholder for adding noise locations
     p = 0.00001
 
-    n_circuit = add_circuit_level_noise(circuit,p,p,p)
+    n_circuit, _ = add_circuit_level_noise(circuit,p,p,p)
 
     
     #One can modify the parameters to fit the desired computation
     params = {
-    'iterCount': 1000,     ## number of iterations - eg QDistRnd, decoderDist
+    'iterCount': 50000,     ## number of iterations - eg QDistRnd, decoderDist
     'maxTime': 3600*8,      ## max runtime for CLI methods (eg SAT, m4ri, )
-    'nThreads':    64,          ## cater for multi-threaded methods
-    'LOCheck': 0,            ## check logical operators
+    'nThreads':    20,          ## cater for multi-threaded methods
+    'LOCheck': 1,            ## check logical operators
     'filterCircuit': False
     }
 
     #If using random algorithms
-    seed = 42
+    seed = np.random.randint(0,1000)
 
     if exact_method:
        #method = 'BZDistMW'
@@ -49,7 +50,7 @@ def compute_circuit_distance(circuit : stim.Circuit, exact_method : bool = False
 
     code_dict = circuitDistance(n_circuit,method,params,seed)
 
-    print(f"Circuit with number of faults {code_dict['n']} has distance approximation {code_dict['d']}")
+    print(f"Circuit with number of faults {code_dict['n']} has distance approximation {code_dict['d']} (Seed = {seed})")
 
     return code_dict
 
@@ -60,11 +61,11 @@ if __name__ == "__main__":
     parser.add_argument("-n", type=int, required=True, help="Number of physical qubits (n)")
     parser.add_argument("-k", type=int, required=True, help="Number of logical qubits (k)")
     parser.add_argument("-d", type=int, required=True, help="Code distance (d)")
-    
+    parser.add_argument("-name", type=str, required=True, help="Prefix for the file name (e.g., 'surface', 'color')")
+
     # Optional parameters
     default_codes_dir = os.path.join(project_root, "Codes")
     parser.add_argument("--dir", type=str, default=default_codes_dir,  help="Directory containing the stim files")
-    parser.add_argument("--prefix", type=str, default="code", help="Prefix for the file name (e.g., 'surface', 'color')")
     parser.add_argument("--exact", action="store_true", help="Use exact BZ algorithm instead of approximate")
     parser.add_argument("--outdir", type=str, default=os.path.join(project_root, "results"), help="Output directory for results")
 
@@ -72,7 +73,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.n == 48:
-        filename = f"{args.n}_{args.k}_Coset2BGA/circuits/{args.n}_{args.k}_Coset2BGA_circuit_{args.prefix}_depth7_memZ.stim"
+        filename = f"{args.n}_{args.k}_Coset2BGA/circuits/{args.n}_{args.k}_Coset2BGA_circuit_{args.prefix}_rounds8_depth7_memZ.stim"
     elif args.n > 48:
         filename = f"BB_codes/BB_{args.n}_{args.k}_{args.d}/circuits/BB_{args.n}_{args.k}_{args.d}_{args.prefix}_depth7_memZ.stim"
     else:
@@ -93,7 +94,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Run the distance computation
-    print(f"Computing distance under noise model ='{args.noise}' and exact_method= {args.exact}...")
+    print(f"Computing distance under circuit-level noise and exact_method= {args.exact}...")
     result = compute_circuit_distance(circuit, exact_method=args.exact)
     print("Done!")
 
@@ -104,7 +105,7 @@ if __name__ == "__main__":
 
     print(summary_msg)
     
-    base_filename = f"{args.prefix}_n{args.n}_k{args.k}_d{args.d}_{args.noise}"
+    base_filename = f"{args.prefix}_n{args.n}_k{args.k}_d{args.d}"
     json_path = os.path.join(args.outdir, f"{base_filename}_results.json")
     txt_path = os.path.join(args.outdir, f"{base_filename}_summary.txt")
     
