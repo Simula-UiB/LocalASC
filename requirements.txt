@@ -1,4 +1,0 @@
-stim
-numpy
-qldpc
-sinter
