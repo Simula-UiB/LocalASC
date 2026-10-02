@@ -1,42 +1,35 @@
 import stim
 
-
-def add_circuit_level_noise(circuit: stim.Circuit, p1q: float = 0.001, p2q: float = 0.001, p_meas: float = 0.001, _total_qubits=None, skip_final_measurements: bool = False, apply_idle_noise_per_tick: bool = True, _is_top_level: bool = True) -> stim.Circuit:
+def add_circuit_level_noise(circuit: stim.Circuit, p1q: float = 0.001, p2q: float = 0.001, p_meas: float = 0.001) -> stim.Circuit:
     """
     Applies Circuit-Level noise to a well annotated circuit (proper TICK placement needed for correct application of idle noise).
+    circuit is a stim circuit, p1q, p2q denote the error probability for one and two qubit gates and p_meas denotes error probability of a measurement  
     """
 
-    if _total_qubits is None:
-        _total_qubits = circuit.num_qubits
+    #Total number of qubits to handle idle locations
+    _total_qubits = circuit.num_qubits
 
     noisy_circuit = stim.Circuit()
-    idle_error_count = 0  # Initialize the counter
+
+    error_gates = {"DEPOLARIZE1", "DEPOLARIZE2", "X_ERROR", "Z_ERROR"}
 
     single_qubit_gates = {"X", "Y", "Z", "H"}
     two_qubit_gates = {"CNOT", "SWAP", "CZ", "CX"}
 
-    # Instructions that are allowed to appear after a "final" measurement
-    allowed_final_ops = {
-        "M", "MX", "MZ", "MPP", 
-        "DETECTOR", "OBSERVABLE_INCLUDE", 
-        "TICK", "SHIFT_COORDS", "QUBIT_COORDS", "POLYGON"
-    }
-
+    #Idle qubit handling
     all_qubits = set(range(_total_qubits))
     active_qubits_in_current_cycle = set()
 
-    for i, instruction in enumerate(circuit): #type: ignore
+    for instruction in circuit:
+
+        #REPEAT blocks  
         if isinstance(instruction, stim.CircuitRepeatBlock):
             # Unpack the tuple from the recursive call
             noisy_block = add_circuit_level_noise(
                 circuit=instruction.body_copy(),
                 p1q=p1q, 
                 p2q=p2q, 
-                p_meas=p_meas, 
-                _total_qubits=_total_qubits,
-                skip_final_measurements=skip_final_measurements,
-                apply_idle_noise_per_tick=apply_idle_noise_per_tick,
-                _is_top_level=False
+                p_meas=p_meas
             )
             noisy_circuit += noisy_block * instruction.repeat_count
             continue
@@ -45,44 +38,26 @@ def add_circuit_level_noise(circuit: stim.Circuit, p1q: float = 0.001, p2q: floa
         targets = instruction.targets_copy()
 
         if gate_name == "TICK":
-            if apply_idle_noise_per_tick:
-                idle_qubits = list(all_qubits - active_qubits_in_current_cycle)
-                if idle_qubits:
-                    idle_qubits.sort() 
-                    noisy_circuit.append("DEPOLARIZE1", idle_qubits, p1q)
-                    idle_error_count += len(idle_qubits) # Add to the counter
+            idle_qubits = list(all_qubits - active_qubits_in_current_cycle)
+            if idle_qubits: 
+                noisy_circuit.append("DEPOLARIZE1", idle_qubits, p1q)
 
             noisy_circuit.append(instruction)
             active_qubits_in_current_cycle.clear()
             continue
 
+        #For every target, add them to active qubit in the current layer
         for t in targets:
             if t.is_qubit_target:
                 active_qubits_in_current_cycle.add(t.value)
 
-        # Final Data Measurements (M, MZ, MX)
+        #Final Data Measurements (M, MZ, MX)
         if gate_name in {"M", "MZ", "MX"}:
-            apply_noise = True
-
-            if skip_final_measurements and _is_top_level:
-                # Look ahead to see if any gates or resets occur after this measurement
-                is_final = True
-                for j in range(i + 1, len(circuit)):
-                    future_inst = circuit[j]
-                    if isinstance(future_inst, stim.CircuitRepeatBlock) or future_inst.name not in allowed_final_ops:
-                        is_final = False
-                        break
-
-                if is_final:
-                    apply_noise = False
-
-            if apply_noise:
-                error_type = "Z_ERROR" if gate_name == "MX" else "X_ERROR"
-                noisy_circuit.append(error_type, targets, p_meas)
-
+            error_type = "Z_ERROR" if gate_name == "MX" else "X_ERROR"
+            noisy_circuit.append(error_type, targets, p_meas)
             noisy_circuit.append(gate_name, targets)
 
-        # Syndrome Extraction Measurements & Resets (MR, MRX)
+        #Syndrome Extraction Measurements & Resets (MR, MRX), since these are measurement and reinitialization, we append both measurement and initialization error
         elif gate_name in {"MR"}:
             noisy_circuit.append("X_ERROR", targets, p_meas)
             noisy_circuit.append(gate_name, targets)
@@ -93,7 +68,7 @@ def add_circuit_level_noise(circuit: stim.Circuit, p1q: float = 0.001, p2q: floa
             noisy_circuit.append(gate_name, targets)
             noisy_circuit.append("Z_ERROR", targets, p1q)
 
-        # Standard Initialization
+        #Initialization
         elif gate_name in {"R", "RZ"}:
             noisy_circuit.append(instruction)
             noisy_circuit.append("X_ERROR", targets, p1q) 
@@ -102,7 +77,7 @@ def add_circuit_level_noise(circuit: stim.Circuit, p1q: float = 0.001, p2q: floa
             noisy_circuit.append(instruction)
             noisy_circuit.append("Z_ERROR", targets, p1q) 
 
-        # Standard Gates
+        #Standard Gates
         elif gate_name in two_qubit_gates:
             noisy_circuit.append(instruction)
             noisy_circuit.append("DEPOLARIZE2", targets, p2q)
@@ -110,13 +85,13 @@ def add_circuit_level_noise(circuit: stim.Circuit, p1q: float = 0.001, p2q: floa
         elif gate_name in single_qubit_gates:
             noisy_circuit.append(instruction)
             noisy_circuit.append("DEPOLARIZE1", targets, p1q)
-
+        
+        #Ignore error gates to not add duplicate noise
+        elif gate_name in error_gates:
+            continue
+        #Append OBSERVABLES and DETECTORS
         else:
             noisy_circuit.append(instruction)
-
-    dem = noisy_circuit.detector_error_model()
-    shape = dem.num_detectors, dem.num_errors
-    print(f"Noisy cxircuit has shape {shape}")
 
     return noisy_circuit
 

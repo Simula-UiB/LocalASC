@@ -1,7 +1,6 @@
 import numpy as np
 import stim
 
-
 # ################### #
 # Circuit constructor #
 # ################### #
@@ -163,7 +162,6 @@ def append_detectors(c, mrec, Hx, Hz, basis, rounds, LZ, mx, mz, n):
         tg = [rec(("D", rounds, j)) for j in range(n) if v[j]]
         c.append("OBSERVABLE_INCLUDE", tg, li)
 
-
 # ############# #
 # CSS functions #
 # ############# #
@@ -203,7 +201,6 @@ def logicals_CSS(Hx, Hz, basis, n, k_expected):
         add(v, True)
     assert len(out) == k_expected, f"expected {k_expected} logicals, got {len(out)}"
     return out
-
 
 # ################### #
 # Auxiliary functions #
