@@ -222,3 +222,6 @@ __marimo__/
 
 #png files
 *.png
+
+#Results folder
+results/

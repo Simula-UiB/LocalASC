@@ -1,11 +1,11 @@
 import numpy as np
 import stim
-
+import csv 
 ####################
 # Circuit builders #
 ####################
 
-def build_CSS_memory_circuit(Hx, Hz, schedule_rows, basis, rounds):
+def build_CSS_memory_circuit(Hx, Hz, schedule_csv, basis, rounds):
     """
     Builds a memory experiment circuit for 'X' or 'Z' -basis using one ancilla per check. The circuit builds using a CNOT schedule given by the schedule_rows.
     Hx and Hz are the PCMs of the CSS code. -> np.ndarray
@@ -16,9 +16,21 @@ def build_CSS_memory_circuit(Hx, Hz, schedule_rows, basis, rounds):
     #Extract the dimensions of PCMs to know the number of data qubits and the number of 'X', 'Z' checks (ancilla qubits) 
     mx, n = Hx.shape
     mz = Hz.shape[0]
+
+    schedule_rows = []
+
+    with open(schedule_csv, 'r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            # Skip empty lines, comments, and the header row
+            if not row or row[0].startswith('#') or row[0] == 'type':
+                continue
+
+            # Parse valid rows and convert numeric columns to integers
+            typ, chk, dq, tick = row
+            schedule_rows.append((typ, int(chk), int(dq), int(tick)))
     
-    
-    D_cx = max(t for *_, t in schedule_rows) + 1 #Circuit depth
+    D_cx = max(int(t) for typ,_, _, t in schedule_rows if typ in ("X", "Z")) + 1 #Circuit depth
  
     tx = -np.ones((mx, n), int)
     tz = -np.ones((mz, n), int)

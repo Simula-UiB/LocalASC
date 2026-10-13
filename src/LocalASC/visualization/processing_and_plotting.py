@@ -114,7 +114,7 @@ def extrap(p, c, e):
 # Plotting functions #
 ######################
 
-def plot_qec_results(file_configs):
+def plot_qec_results(file_configs: list, save_path: str | Path | None = None):
     """
     Plot the results from run_sinter_experiment()
     """
@@ -133,7 +133,7 @@ def plot_qec_results(file_configs):
             
         p_ps, coeffs, exp = get_fit_params(df, k, d_circ)
         
-        # Error Filtering (Identical to export)
+        # Error Filtering
         df_plot = df[(df['p'] >= x_min) & (df['p'] <= x_max)].copy()
         
         safe_pL = np.maximum(df_plot['total_pL'], 1e-15)
@@ -144,84 +144,72 @@ def plot_qec_results(file_configs):
         plt.errorbar(df_plot['p'], df_plot['total_pL'], yerr=df_plot['total_pL_err'], 
                      fmt=marker, color=color, capsize=3, alpha=0.8, label=lbl, markersize=6)
         
-        # Plot Fitted Sub-threshold Curve (Identical logic)
+        # Plot Fitted Sub-threshold Curve
         sub_threshold_points = df[df['p'] < p_ps]['p']
         stop_line_p = sub_threshold_points.max() if not sub_threshold_points.empty else p_ps
             
         p_fine_sub = p_fine[p_fine <= stop_line_p]
         plt.plot(p_fine_sub, extrap(p_fine_sub, coeffs, exp), '-.', color=color, linewidth=2)
 
-        
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlim(x_min, x_max)
-    plt.ylim(1e-13, 1e-1)
+    plt.xlabel('Physical Error Rate ($p$)', fontsize=14)
+    plt.ylabel('Logical Error Rate ($p_L$)', fontsize=14)
+    plt.title('Memory Experiment Results', fontsize=16)
+    plt.grid(True, which="both", ls="--", alpha=0.5)
+    plt.legend(loc="upper left")
+    plt.tight_layout()
 
-    plt.title('Circuit Level Performance', fontsize=18, pad=15)
-    plt.xlabel('Physical Error Rate ($p$)', fontsize=18)
-    plt.ylabel('Logical Error Rate per Syndrome Cycle ($p_L$)', fontsize=18)
-
-    plt.legend(loc='lower right', fontsize=16, framealpha=0.9, edgecolor='gray')
-    plt.grid(True, which="both", ls="--", alpha=0.4)
-    plt.tight_layout() 
+    
+    if save_path:
+        save_path = Path(save_path)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(save_path, format='jpg', dpi=300, bbox_inches='tight')
+        print(f"Saved plot image to {save_path}")
 
     plt.show()
 
-def plot_filtering_results(folder_path: str | Path):
+def plot_filtering_results(summary_file: Path, save_path: Path | None = None) -> None:
     """
-    Reads all *_results.json files in a directory, sorts them by LER descending, 
-    and plots them as a combined bar and line chart.
+    Reads the agglomerated summary file and plots the LER trend.
     """
-
-    folder = Path(folder_path)
-    data_points = []
-
-    # Extract Data
-    for file_path in folder.glob("*_results.json"):
-        # Extract the prefix
-        step_name = file_path.name.replace("_results.json", "")
-        
-        with open(file_path, 'r') as f:
-            try:
-                data = json.load(f)
-                if 'total_ler' in data:
-                    data_points.append({
-                        'name': step_name,
-                        'ler': data['total_ler']
-                    })
-            except json.JSONDecodeError:
-                print(f"Warning: Could not parse {file_path.name}")
-
-    if not data_points:
-        print(f"No valid result files found in {folder_path}")
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        print("matplotlib is not installed. Skipping plot.")
         return
 
-    # Sort Descending by LER
-    data_points.sort(key=lambda x: x['ler'], reverse=True)
+    # Load the sorted data
+    with open(summary_file, 'r') as f:
+        data_points = json.load(f)
 
-    names = [pt['name'] for pt in data_points]
-    lers = [pt['ler'] for pt in data_points]
-    x_positions = range(len(names))
+    if not data_points:
+        return
 
-    # Plotting
+    names = [pt['step_name'] for pt in data_points]
+    lers = [pt['total_ler'] for pt in data_points]
+    x_positions = np.array(range(len(names))) + 1
+
     plt.rcParams.update({'font.size': 12})
     plt.figure(figsize=(12, 6))
     
-    # Overlay the bar chart and the connecting line
     plt.bar(x_positions, lers, color='#4C72B0', alpha=0.6, edgecolor='black', label='LER (Bar)')
     plt.plot(x_positions, lers, color='#C44E52', marker='o', linewidth=2, markersize=6, label='LER Trend')
 
-    # Formatting
-    plt.xticks(x_positions, names, rotation=45, ha="right")
-    
+    plt.xticks(x_positions, rotation=45, ha="right")
     plt.yscale('log')
     plt.ylabel('Logical Error Rate ($p_L$) [Log Scale]', fontsize=14)
-        
     plt.xlabel('Candidate Circuit', fontsize=14)
     plt.title('Circuit Filtering Results (Ranked by LER)', fontsize=16, pad=15)
     
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.legend(loc='upper right', framealpha=0.9)
     plt.tight_layout()
+    
+    # Save the plot if path is provided
+    if save_path:
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(save_path, format='jpg', dpi=300, bbox_inches='tight')
+        print(f"Saved plot image to {save_path}")
 
     plt.show()

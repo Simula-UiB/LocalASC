@@ -6,10 +6,11 @@ import stim
 import sinter
 from stimbposd import SinterDecoder_BPOSD
 
-from circuit_builder.noise import add_circuit_level_noise
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 DEFAULT_SINTER_DIR = PROJECT_ROOT / "results" / "sinter_data"
+from src.LocalASC.circuit_builder.noise import add_circuit_level_noise
+
+
 
 #############################
 # Sinter decoder experiments #
@@ -39,7 +40,7 @@ def evaluate_circuit_fast(base_circ_x, base_circ_z, p, d, num_shots, max_errors,
         num_workers=max(1, multiprocessing.cpu_count() // 3),
         tasks=tasks,
         decoders=['bposd_cs'],
-        custom_decoders=custom_decoders,
+        custom_decoders=custom_decoders, #type: ignore
         max_shots=num_shots,
         max_errors=max_errors,
         print_progress=False  # Keep console clean during massive loops
@@ -76,8 +77,7 @@ def run_sinter_experiment(
     nrounds: int,
     num_shots: int, 
     max_errors: int, 
-    max_bp_iter: int, 
-    seed: int,
+    max_bp_iter: int,
     d: int | None = None,
     output_dir: str | Path = DEFAULT_SINTER_DIR
 ):
@@ -112,7 +112,7 @@ def run_sinter_experiment(
         num_workers=max(1, multiprocessing.cpu_count() // 2), 
         tasks=tasks,
         decoders=['bposd_cs'],
-        custom_decoders=custom_decoders, 
+        custom_decoders=custom_decoders,  #type: ignore
         max_shots=num_shots,
         max_errors=max_errors,
         print_progress=True
@@ -152,7 +152,6 @@ def run_sinter_experiment(
             "errors_x": int(n_e_x),
             "shots_z": int(n_s_z),
             "errors_z": int(n_e_z),
-            "seed": seed,
             "max_bp_iter": max_bp_iter,
             "batch_compute_time": round(elapsed_time, 2)
         }
