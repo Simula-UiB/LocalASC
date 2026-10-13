@@ -1,9 +1,9 @@
 import numpy as np
 import stim
 
-# ################### #
-# Circuit constructor #
-# ################### #
+####################
+# Circuit builders #
+####################
 
 def build_CSS_memory_circuit(Hx, Hz, schedule_rows, basis, rounds):
     """
