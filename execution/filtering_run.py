@@ -23,10 +23,10 @@ def main():
     ap.add_argument("-s", "--steps", dest="filtering_steps", type=int, default=20, help="Number of schedules to search (default: 20)")
     ap.add_argument("-t", "--max_time_hrs", type=float, default=2.0, help="Maximum pipeline runtime in hours (default: 2.0)")
     
-    # Fast Evaluation Parameters
+    # Evaluation Parameters
     ap.add_argument("-p", "--eval_p", type=float, default=0.001, help="Physical error rate for filtering evaluation (default: 0.001)")
-    ap.add_argument("--shots", type=int, default=5000, help="Max shots per evaluation (default: 5000)")
-    ap.add_argument("--max_errors", type=int, default=100, help="Target errors per evaluation (default: 100)")
+    ap.add_argument("--shots", type=int, default=10000, help="Max shots per evaluation (default: 10000)")
+    ap.add_argument("--max_errors", type=int, default=50, help="Target errors per evaluation (default: 50)")
 
     #Visualization of filtering
     ap.add_argument("--plot", action="store_true", help="Plot the agglomerated results after filtering completes")

@@ -90,6 +90,9 @@ def run_sinter_experiment(
     filepath = Path(output_dir) / safe_filename
     filepath.parent.mkdir(parents=True, exist_ok=True)
 
+    #Add run id to distinguish different runs with the same parameters in the .json 
+    run_id = int(time.time())
+
     print(f"Generating Sinter tasks for {len(physical_error_probs)} noise levels...")
     
     # Build all sinter tasks
@@ -109,13 +112,13 @@ def run_sinter_experiment(
     start_time = time.perf_counter()
     
     stats_list = list(sinter.collect(
-        num_workers=max(1, multiprocessing.cpu_count() // 2), 
+        num_workers=max(1, multiprocessing.cpu_count() // 2), #modify this for the number of workers you want to use 
         tasks=tasks,
         decoders=['bposd_cs'],
         custom_decoders=custom_decoders,  #type: ignore
         max_shots=num_shots,
         max_errors=max_errors,
-        print_progress=True
+        print_progress=True # Toggle if you want run progress
     ))
     
     elapsed_time = time.perf_counter() - start_time
@@ -153,7 +156,8 @@ def run_sinter_experiment(
             "shots_z": int(n_s_z),
             "errors_z": int(n_e_z),
             "max_bp_iter": max_bp_iter,
-            "batch_compute_time": round(elapsed_time, 2)
+            "batch_compute_time": round(elapsed_time, 2),
+            "run_id": run_id
         }
         
         records_to_save.append(json.dumps(record))
