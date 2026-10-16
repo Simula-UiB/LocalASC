@@ -79,7 +79,8 @@ def run_sinter_experiment(
     max_errors: int, 
     max_bp_iter: int,
     d: int | None = None,
-    output_dir: str | Path = DEFAULT_SINTER_DIR
+    output_dir: str | Path = DEFAULT_SINTER_DIR,
+    verbose= False
 ):
     """
     Runs decoding for given X and Z memory experiment circuits.
@@ -118,7 +119,7 @@ def run_sinter_experiment(
         custom_decoders=custom_decoders,  #type: ignore
         max_shots=num_shots,
         max_errors=max_errors,
-        print_progress=True # Toggle if you want run progress
+        print_progress= verbose # Toggle verbose if you want to print progress
     ))
     
     elapsed_time = time.perf_counter() - start_time
