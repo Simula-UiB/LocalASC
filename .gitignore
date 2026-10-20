@@ -225,3 +225,9 @@ __marimo__/
 
 #Results folder
 results/
+
+#codes folder
+codes/clp_codes
+
+#Script to transform files
+execution/transform_files.py

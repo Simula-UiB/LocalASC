@@ -76,6 +76,7 @@ def profile_schedule_generation(
     rec = {
         "code": code_name,
         "n": int(Hx.shape[1]),
+        "mean_ms": round(st.mean(T) * 1e3, 1),
         "w": w,
         "Delta": Delta,
         "D": D,
@@ -87,7 +88,6 @@ def profile_schedule_generation(
         "statuses": sorted(set(statuses)),
         "lift": lift,
         "times_ms": [round(t * 1e3, 1) for t in T],
-        "mean_ms": round(st.mean(T) * 1e3, 1),
         "sd_ms": sd_ms,
         "aut_mean_ms": round(st.mean(A) * 1e3, 1),
         "date": time.strftime("%Y-%m-%d"),

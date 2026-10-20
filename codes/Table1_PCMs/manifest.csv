@@ -1,0 +1,19 @@
+row,"[[n,k,d]]",section,references,Hx_file,Hz_file,n,k,rows_Hx,rows_Hz,w,Delta_D,lambda*_SEC,|H*|
+1,"[[12,4,2]]","Two-block codes, (w_A, w_B) = (3,3)",[8],01_n12_k4_d2_Hx.txt,01_n12_k4_d2_Hz.txt,12,4,6,6,6,6,6,3
+2,"[[24,4,4]]","Two-block codes, (w_A, w_B) = (3,3)",[8],02_n24_k4_d4_Hx.txt,02_n24_k4_d4_Hz.txt,24,4,12,12,6,6,6,3
+3,"[[28,6,4]]","Two-block codes, (w_A, w_B) = (3,3)",[8],03_n28_k6_d4_Hx.txt,03_n28_k6_d4_Hz.txt,28,6,14,14,6,6,6,7
+4,"[[36,4,4]]","Two-block codes, (w_A, w_B) = (3,3)",[9],04_n36_k4_d4_Hx.txt,04_n36_k4_d4_Hz.txt,36,4,18,18,6,6,6,3
+5,"[[36,4,6]]","Two-block codes, (w_A, w_B) = (3,3)",[10],05_n36_k4_d6_Hx.txt,05_n36_k4_d6_Hz.txt,36,4,18,18,6,6,6,3
+6,"[[48,4,8]]","Two-block codes, (w_A, w_B) = (3,3)",[8],06_n48_k4_d8_Hx.txt,06_n48_k4_d8_Hz.txt,48,4,24,24,6,6,6,3
+7,"[[48,4,8]]","Two-block codes, (w_A, w_B) = (3,3)",[11],07_n48_k4_d8_Hx.txt,07_n48_k4_d8_Hz.txt,48,4,24,24,6,6,6,3
+8,"[[108,12,6]]","Two-block codes, (w_A, w_B) = (3,3)",[12],08_n108_k12_d6_Hx.txt,08_n108_k12_d6_Hz.txt,108,12,54,54,6,6,6,27
+9,"[[84,14,10]]","Two-block codes, (w_A, w_B) = (3,5)",[13],09_n84_k14_d10_Hx.txt,09_n84_k14_d10_Hz.txt,84,14,42,42,8,8,8,21
+10,"[[96,12,10]]","Two-block codes, (w_A, w_B) = (3,5)",[13],10_n96_k12_d10_Hx.txt,10_n96_k12_d10_Hz.txt,96,12,48,48,8,8,8,12
+11,"[[112,12,12]]","Two-block codes, (w_A, w_B) = (3,5)",[13],11_n112_k12_d12_Hx.txt,11_n112_k12_d12_Hz.txt,112,12,56,56,8,8,8,14
+12,"[[120,8,8]]","Two-block codes, (w_A, w_B) = (3,5)",[13],12_n120_k8_d8_Hx.txt,12_n120_k8_d8_Hz.txt,120,8,60,60,8,8,8,15
+13,"[[45,7,4]]",Quantum Tanner codes,"[14], [15]",13_n45_k7_d4_Hx.txt,13_n45_k7_d4_Hz.txt,45,7,20,20,6,6,6,5
+14,"[[180,26,6]]",Quantum Tanner codes,"[15], [16]",14_n180_k26_d6_Hx.txt,14_n180_k26_d6_Hz.txt,180,26,80,80,6,6,6,5
+15,"[[325,14,9]]",Quantum Tanner codes,"[14], [15]",15_n325_k14_d9_Hx.txt,15_n325_k14_d9_Hz.txt,325,14,156,156,9,9,9,13
+16,"[[666,4,d>=13]]",Quantum Tanner codes,"[14], [15]",16_n666_k4_Hx.txt,16_n666_k4_Hz.txt,666,4,333,333,9,9,9,37
+17,"[[666,8,d>=13]]",Quantum Tanner codes,"[14], [15]",17_n666_k8_Hx.txt,17_n666_k8_Hz.txt,666,8,333,333,9,9,9,37
+18,"[[1225,225,6]]",Quantum Tanner codes,"[14], [15]",18_n1225_k225_d6_Hx.txt,18_n1225_k225_d6_Hz.txt,1225,225,500,500,12,9,12,25

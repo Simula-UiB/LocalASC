@@ -93,6 +93,8 @@ python execution/generate_runtime_table.py [specific_codes ...] [OPTIONS]
 - `--tlim_step`: CP-SAT limit in seconds per subgroup step when using the ladder policy (default: 60).
 - `--hybrid_cap`: CP-SAT limit in seconds on the first hybrid maxodd attempt (default: 10).
 
+- `--search_best`Looks for the fastest policy of choosing the automorphism subgroup to generate a schedule. 
+
 ## Citation
 
 If you use this code or methodology in your research, please cite our work:
