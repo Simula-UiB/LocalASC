@@ -9,7 +9,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.LocalASC.circuit_builder.circuit_builder import build_CSS_memory_circuit, rank2_rref
 from src.LocalASC.simulation.sinter_experiment import run_sinter_experiment
-from LocalASC.scheduling.localASC_scheduler import generate_schedule
+from src.LocalASC.scheduling.localASC_scheduler import generate_schedule
 from src.LocalASC.visualization.processing_and_plotting import plot_qec_results
 
 def main():

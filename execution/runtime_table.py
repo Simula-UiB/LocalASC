@@ -44,7 +44,7 @@ def main():
     parser = argparse.ArgumentParser(description="Reproduce runtime results for Table I.")
     
     # Core settings
-    parser.add_argument("--policy", type=str, default="auto", choices=["auto", "hybrid", "ladder", "maxodd", "odd", "full"], help="Subgroup search policy")
+    parser.add_argument("--policy", type=str, default="hybrid", choices=["hybrid", "ladder", "maxodd", "odd", "full"], help="Subgroup search policy")
     parser.add_argument("--codes_dir", type=str, default=str(PROJECT_ROOT / "codes" / "Table1_PCMs"), help="Directory containing code matrices")
     parser.add_argument("--output", type=str, default=str(PROJECT_ROOT / "results" / "timing_tables" /"localasc_table_timing.jsonl"), help="Output JSONL file path")
     parser.add_argument("--runs", type=int, default=10, help="Number of profiling runs per code")
@@ -123,10 +123,7 @@ def main():
                 print(f"[!] All policies failed for {code}.")
 
         else:
-            if args.policy == "auto":
-                current_policy = POLICY_MAP.get(code, "hybrid") 
-            else:
-                current_policy = args.policy
+            current_policy = args.policy
             
             try:
                 profile_schedule_generation(
