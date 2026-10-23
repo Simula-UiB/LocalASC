@@ -15,8 +15,8 @@ This repository contains the official implementation of **Local Automorphism-Awa
 Clone the repository and install the required dependencies. We recommend installing the `src` directory as an editable package so the execution scripts can easily import the core modules.
 
 ```bash
-git clone https://github.com/Simula-UiB/LocASC.git
-cd LocASC
+git clone https://github.com/Simula-UiB/LocalASC.git
+cd LocalASC
 pip install -r requirements.txt
 pip install -e .
 ```
