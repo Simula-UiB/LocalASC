@@ -10,24 +10,24 @@ from src.LocalASC.scheduling.profile_scheduler import profile_schedule_generatio
 
 # Standard codes for the table reproduction
 CODES = {
-    "01_n12_k4_d2": ("01_n12_k4_d2_Hx.txt", "01_n12_k4_d2_Hz.txt"),             # LLSC25_12_4_d2
-    "02_n24_k4_d4": ("02_n24_k4_d4_Hx.txt", "02_n24_k4_d4_Hz.txt"),             # LLSC25_24_4_d4
-    "03_n28_k6_d4": ("03_n28_k6_d4_Hx.txt", "03_n28_k6_d4_Hz.txt"),             # LLSC25_28_6_d4
-    "04_n36_k4_d4": ("04_n36_k4_d4_Hx.txt", "04_n36_k4_d4_Hz.txt"),             # PK25_36_4_d4
-    "05_n36_k4_d6": ("05_n36_k4_d6_Hx.txt", "05_n36_k4_d6_Hz.txt"),             # Wang-etal26_36_4_d6
-    "06_n48_k4_d8": ("06_n48_k4_d8_Hx.txt", "06_n48_k4_d8_Hz.txt"),             # LLSC25_48_4_d8
-    "07_n48_k4_d8": ("07_n48_k4_d8_Hx.txt", "07_n48_k4_d8_Hz.txt"),             # ATB_48_4_d8
-    "08_n108_k12_d6": ("08_n108_k12_d6_Hx.txt", "08_n108_k12_d6_Hz.txt"),       # WM24_108_12_d6
-    "09_n84_k14_d10": ("09_n84_k14_d10_Hx.txt", "09_n84_k14_d10_Hz.txt"),       # LP23_84_14_d10
-    "10_n96_k12_d10": ("10_n96_k12_d10_Hx.txt", "10_n96_k12_d10_Hz.txt"),       # LP23_96_12_d10
-    "11_n112_k12_d12": ("11_n112_k12_d12_Hx.txt", "11_n112_k12_d12_Hz.txt"),    # LP23_112_12_d12
-    "12_n120_k8_d8": ("12_n120_k8_d8_Hx.txt", "12_n120_k8_d8_Hz.txt"),          # LP23_120_8_d8
-    "13_n45_k7_d4": ("13_n45_k7_d4_Hx.txt", "13_n45_k7_d4_Hz.txt"),             # 45_7_35_d4
-    "14_n180_k26_d6": ("14_n180_k26_d6_Hx.txt", "14_n180_k26_d6_Hz.txt"),       # 180_26_d6
-    "15_n325_k14_d9": ("15_n325_k14_d9_Hx.txt", "15_n325_k14_d9_Hz.txt"),       # Tan2TNCb_325_14_d9_5
-    "16_n666_k4": ("16_n666_k4_Hx.txt", "16_n666_k4_Hz.txt"),                   # Tan2TNCb_666_4_65
-    "17_n666_k8": ("17_n666_k8_Hx.txt", "17_n666_k8_Hz.txt"),                   # Tan2TNCb_666_8_68
-    "18_n1225_k225_d6": ("18_n1225_k225_d6_Hx.txt", "18_n1225_k225_d6_Hz.txt"), # 1225_225_d6
+    "01_n12_k4_d2": ("01_n12_k4_d2_Hx.txt", "01_n12_k4_d2_Hz.txt"),             
+    "02_n24_k4_d4": ("02_n24_k4_d4_Hx.txt", "02_n24_k4_d4_Hz.txt"),             
+    "03_n28_k6_d4": ("03_n28_k6_d4_Hx.txt", "03_n28_k6_d4_Hz.txt"),             
+    "04_n36_k4_d4": ("04_n36_k4_d4_Hx.txt", "04_n36_k4_d4_Hz.txt"),             
+    "05_n36_k4_d6": ("05_n36_k4_d6_Hx.txt", "05_n36_k4_d6_Hz.txt"),             
+    "06_n48_k4_d8": ("06_n48_k4_d8_Hx.txt", "06_n48_k4_d8_Hz.txt"),            
+    "07_n48_k4_d8": ("07_n48_k4_d8_Hx.txt", "07_n48_k4_d8_Hz.txt"),             
+    "08_n108_k12_d6": ("08_n108_k12_d6_Hx.txt", "08_n108_k12_d6_Hz.txt"),      
+    "09_n84_k14_d10": ("09_n84_k14_d10_Hx.txt", "09_n84_k14_d10_Hz.txt"),      
+    "10_n96_k12_d10": ("10_n96_k12_d10_Hx.txt", "10_n96_k12_d10_Hz.txt"),       
+    "11_n112_k12_d12": ("11_n112_k12_d12_Hx.txt", "11_n112_k12_d12_Hz.txt"),    
+    "12_n120_k8_d8": ("12_n120_k8_d8_Hx.txt", "12_n120_k8_d8_Hz.txt"),          
+    "13_n45_k7_d4": ("13_n45_k7_d4_Hx.txt", "13_n45_k7_d4_Hz.txt"),             
+    "14_n180_k26_d6": ("14_n180_k26_d6_Hx.txt", "14_n180_k26_d6_Hz.txt"),       
+    "15_n325_k14_d9": ("15_n325_k14_d9_Hx.txt", "15_n325_k14_d9_Hz.txt"),       
+    "16_n666_k4": ("16_n666_k4_Hx.txt", "16_n666_k4_Hz.txt"),                   
+    "17_n666_k8": ("17_n666_k8_Hx.txt", "17_n666_k8_Hz.txt"),                   
+    "18_n1225_k225_d6": ("18_n1225_k225_d6_Hx.txt", "18_n1225_k225_d6_Hz.txt"), 
 }
 
 POLICY_MAP = {"04_n36_k4_d4": "odd", "05_n36_k4_d6": "odd", "14_n180_k26_d6": "full"}
