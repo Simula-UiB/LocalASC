@@ -502,9 +502,9 @@ def lift_validate(Hx, Hz, orb, vals):
 
     return TX, TZ, conf, bad, pairs, dt, ne
 
-def generate_schedule(Hx, Hz, D, output_csv, solver_tlim=120, odd_order_automorphisms=True):
+def generate_schedule(Hx, Hz, D, output_csv, solver_tlim=120, odd_order_automorphisms=False):
     """
-    Generates a CNOT schedule using local_asc_generic with a timeout.
+    Generates a CNOT schedule using local_asc_generic with a timeout. Toggle odd_order_autopmorphism to restrict the search space to only odd order automorphisms.
     """
     autos = automorphisms(Hx, Hz)
     odd_orders = sorted({order_of(a) for a in autos if order_of(a) > 1 and order_of(a) % 2 == 1})
@@ -534,7 +534,7 @@ def ladder(Hx, Hz, edges, autos, D, skip, above, tlim_step):
     """
     Algorithm 1 over every enumerated subgroup, largest first; returns (gens, orb, norb, status, vals, tried).
     `skip`: a subgroup key (subgroup_key) already tried, e.g. the maxodd subgroup in the hybrid policy.
-    `above`: only subgroups with |H| > above (hybrid, after the maxodd attempt merely ran out of time).
+    `above`: only subgroups with |H| > above.
     """
     subs = sorted(((k, v) for k, v in enumerate_subgroups(autos).items() if k != skip and v[1] > above),
                   key=lambda kv: -kv[1][1])
@@ -556,9 +556,8 @@ def hybrid(Hx, Hz, edges, autos, D, tlim_step, tlim_hybrid, tlim_max):
       - maxodd subgroup trivial, not well-formed, or INFEASIBLE -> ladder over every other subgroup, largest first
         (trivial group last);
       - maxodd merely out of time (UNKNOWN) -> ladder over the LARGER subgroups only (fewer variables, faster);
-        if none solves, re-solve the maxodd subgroup from scratch with the TLIM limit (1800 s). A smaller subgroup is a larger, slower model,
-        so it is not tried just because maxodd was slow (Tan2TNCb_666_4_65: C37 occasionally needs > 10 s, and
-        the only smaller subgroup is the unreduced model).
+        if none solves, re-solve the maxodd subgroup from scratch with the TLIM limit. A smaller subgroup is a larger, slower model,
+        so it is not tried just because maxodd was slow.
         """
     gens = pick(autos, "maxodd")
     tried = []
