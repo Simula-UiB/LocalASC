@@ -223,9 +223,6 @@ __marimo__/
 #png files
 *.png
 
-#Results folder
-results/
-
 #codes folder
 codes/clp_codes
 
