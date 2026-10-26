@@ -12,13 +12,12 @@ This repository contains the official implementation of **Local Automorphism-Awa
 
 ## Installation
 
-Clone the repository and install the required dependencies. We recommend installing the `src` directory as an editable package so the execution scripts can easily import the core modules.
+Clone the repository and install the required dependencies. The execution scripts and notebooks import the library directly from `src/`, so the package itself does not need to be installed.
 
 ```bash
 git clone https://github.com/Simula-UiB/LocalASC.git
 cd LocalASC
 pip install -r requirements.txt
-pip install -e .
 ```
 
 ## Interactive Notebooks
@@ -34,13 +33,13 @@ The `/execution` folder contains the primary entry points for reproducing the re
 
 ### 1. Circuit Filtering Pipeline
 
-**Script:** `execution/run_circuit_filtering.py`
+**Script:** `execution/filtering_run.py`
 
 This script automates the search for the optimal parity check schedule. It explores multiple candidate schedules at a specified circuit depth, builds the corresponding Stim memory circuits, and evaluates their logical error rate (LER) using a fast Sinter experiment. The best-performing circuit is automatically saved to `/results/best_circuits`. The default decoder is the sinter BP+OSD-CS10 with Min-Sum, from the `stimbposd` package. This can be customized in `/src/LocalASC/simulation/sinter_experiment`.
 
 **Usage:**
 ```bash
-python execution/run_circuit_filtering.py <hx_path> <hz_path> [OPTIONS]
+python execution/filtering_run.py <hx_path> <hz_path> [OPTIONS]
 ```
 
 **Key Arguments:**
@@ -56,13 +55,13 @@ python execution/run_circuit_filtering.py <hx_path> <hz_path> [OPTIONS]
 
 ### 2. Sinter Memory Experiment
 
-**Script:** `execution/run_sinter_experiment.py`
+**Script:** `execution/decoding_experiment.py`
 
 Runs a full memory experiment over a range of physical error probabilities. It decodes the provided (or dynamically generated) Stim circuits using BP+OSD and saves the statistical results as a JSON file in `/results/sinter_data/`.
 
 **Usage:**
 ```bash
-python execution/run_sinter_experiment.py <hx_path> <hz_path> <rounds> -p <prob1> <prob2> ... [OPTIONS]
+python execution/decoding_experiment.py <hx_path> <hz_path> <rounds> -p <prob1> <prob2> ... [OPTIONS]
 ```
 
 **Key Arguments:**
@@ -74,26 +73,26 @@ python execution/run_sinter_experiment.py <hx_path> <hz_path> <rounds> -p <prob1
 
 ### 3. Runtime Table Generation (Table I)
 
-**Script:** `execution/generate_runtime_table.py`
+**Script:** `execution/runtime_table.py`
 
 Reproduces **Table I** from the paper. This script iterates over standard codes provided in the `/codes` directory, runs the schedule generation algorithm under various policies, and profiles the execution time. 
 
 **Usage:**
 ```bash
-python execution/generate_runtime_table.py [specific_codes ...] [OPTIONS]
+python execution/runtime_table.py [specific_codes ...] [OPTIONS]
 ```
 
 **Key Arguments:**
-- `specific_codes`: Optional space-separated list of specific code names to run (e.g., `PK25_36_4_d4 180_26_d6`). If omitted, all predefined codes in the suite will be evaluated.
-- `--policy`: The subgroup search policy to apply. Choices are `hybrid`, `ladder`, `maxodd`, `odd`, or `full`.
-- `--codes_dir`: Path to the directory containing the code matrices (default: `codes/`).
+- `specific_codes`: Optional space-separated list of specific code names to run (e.g., `04_n36_k4_d4 14_n180_k26_d6`). If omitted, all predefined codes in the suite will be evaluated.
+- `--policy`: The subgroup search policy to apply. Choices are `hybrid`, `ladder`, `maxodd`, `odd`, or `full` (default: `hybrid`, the policy used for Table I).
+- `--codes_dir`: Path to the directory containing the code matrices (default: `codes/Table1_PCMs`).
 - `--output`: Path to save the generated JSONL runtime table (default: `results/timing_tables/localasc_table_timing.jsonl`).
 - `--runs`: Number of profiling iterations to run per code (default: 10).
 - `--tlim`: Maximum time limit in seconds for full searches (default: 1800).
 - `--tlim_step`: CP-SAT limit in seconds per subgroup step when using the ladder policy (default: 60).
 - `--hybrid_cap`: CP-SAT limit in seconds on the first hybrid maxodd attempt (default: 10).
 
-- `--search_best`Looks for the fastest policy of choosing the automorphism subgroup to generate a schedule. 
+- `--search_best`: Looks for the fastest policy of choosing the automorphism subgroup to generate a schedule.
 
 ## Citation
 
