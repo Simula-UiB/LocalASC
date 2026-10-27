@@ -502,14 +502,24 @@ def lift_validate(Hx, Hz, orb, vals):
 
     return TX, TZ, conf, bad, pairs, dt, ne
 
-def generate_schedule(Hx, Hz, D, output_csv, solver_tlim=120, odd_order_automorphisms=False):
+def generate_schedule(Hx, Hz, D, output_csv, solver_tlim=120, odd_order_automorphism=True, trivial_subgroup = False):
     """
-    Generates a CNOT schedule using local_asc_generic with a timeout. Toggle odd_order_autopmorphism to restrict the search space to only odd order automorphisms.
+    Generates a CNOT schedule using local_asc_generic with a timeout.
+    (default) odd_order_automorphism selects the largest odd_order generator for the subgroup.
+    trivial_subgroup selects the neutral element as generator.
+    setting both to False picks the largest order generator for the subgroup regardless of order parity.
     """
     autos = automorphisms(Hx, Hz)
-    odd_orders = sorted({order_of(a) for a in autos if order_of(a) > 1 and order_of(a) % 2 == 1})
-    gens = [[a for a in autos if order_of(a) == odd_orders[-1]][0]] if odd_order_automorphisms else \
-           ([a for a in autos if order_of(a) > 1][:1] if len(autos) > 1 else [])
+
+    if odd_order_automorphism:
+        odd_orders = sorted({order_of(a) for a in autos if order_of(a) > 1 and order_of(a) % 2 == 1})
+        gens = [[a for a in autos if order_of(a) == odd_orders[-1]][0]]
+    elif trivial_subgroup:
+        gens = ([a for a in autos if order_of(a) > 1][:1] if len(autos) > 1 else [])
+    else:
+        orders = sorted({order_of(a) for a in autos if order_of(a) > 1})
+        gens = [[a for a in autos if order_of(a) == orders[-1]][0]]
+
 
     edges = [("X", r, int(q)) for r in range(Hx.shape[0]) for q in np.nonzero(Hx[r])[0]] + \
             [("Z", r, int(q)) for r in range(Hz.shape[0]) for q in np.nonzero(Hz[r])[0]]

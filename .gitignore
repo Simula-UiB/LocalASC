@@ -217,7 +217,11 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# json files
+*.json
 
+# Results folder
+#results/
 
 #png files
 *.png

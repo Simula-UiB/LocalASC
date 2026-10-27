@@ -93,3 +93,5 @@ tqdm==4.70.1
     # via ldpc
 typing-extensions==4.16.0
     # via ortools
+
+codedistance

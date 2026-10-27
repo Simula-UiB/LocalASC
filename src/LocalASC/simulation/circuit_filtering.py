@@ -10,7 +10,7 @@ DEFAULT_TEMP_DIR = PROJECT_ROOT / "results" / "optimization_runs"
 
 from src.LocalASC.circuit_builder.circuit_builder import build_CSS_memory_circuit, rank2_rref
 from src.LocalASC.simulation.sinter_experiment import evaluate_circuit_fast
-from LocalASC.scheduling.localASC_scheduler import generate_schedule
+from src.LocalASC.scheduling.localASC_scheduler import generate_schedule
 
 
 #############
