@@ -218,10 +218,10 @@ __marimo__/
 .streamlit/secrets.toml
 
 # json files
-#*.json
+*.json
 
 # Results folder
-#results/
+results/
 
 #png files
 *.png
