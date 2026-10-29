@@ -502,32 +502,21 @@ def lift_validate(Hx, Hz, orb, vals):
 
     return TX, TZ, conf, bad, pairs, dt, ne
 
-def generate_schedule(Hx, Hz, D, output_csv, solver_tlim=120, odd_order_automorphism=True, trivial_subgroup = False):
+def generate_schedule(Hx, Hz, D, output_csv, solver_tlim=120):
     """
     Generates a CNOT schedule using local_asc_generic with a timeout.
-    (default) odd_order_automorphism selects the largest odd_order generator for the subgroup.
-    trivial_subgroup selects the neutral element as generator.
-    setting both to False picks the largest order generator for the subgroup regardless of order parity.
+    Use a hybrid-like policy to first try the maxodd subgroup, then ladder over all other subgroups if that fails.
+    Writes the schedule to output_csv if successful, and returns (True, status) or (False, status) if not.
     """
     autos = automorphisms(Hx, Hz)
-
-    if odd_order_automorphism:
-        odd_orders = sorted({order_of(a) for a in autos if order_of(a) > 1 and order_of(a) % 2 == 1})
-        gens = [[a for a in autos if order_of(a) == odd_orders[-1]][0]]
-    elif trivial_subgroup:
-        gens = ([a for a in autos if order_of(a) > 1][:1] if len(autos) > 1 else [])
-    else:
-        orders = sorted({order_of(a) for a in autos if order_of(a) > 1})
-        gens = [[a for a in autos if order_of(a) == orders[-1]][0]]
-
-
     edges = [("X", r, int(q)) for r in range(Hx.shape[0]) for q in np.nonzero(Hx[r])[0]] + \
             [("Z", r, int(q)) for r in range(Hz.shape[0]) for q in np.nonzero(Hz[r])[0]]
-    orb, norb = orbit_map(edges, gens)
 
-    status, _, vals = solve_equivariant(Hx, Hz, orb, norb, int(D), tlim=solver_tlim)
+    gens, orb, norb, status, vals, _ = hybrid(Hx, Hz, edges, autos, D, tlim_step=solver_tlim, tlim_hybrid= solver_tlim/2, tlim_max = solver_tlim)
+
     
     if vals is not None:
+        print(f"Found subgroup with {len(gens)} generators, |H|={norb}, status={status}")
         TX, TZ, conf, bad, _, _, _ = lift_validate(Hx, Hz, orb, vals)
         if conf == 0 and bad == 0:
             with open(output_csv, "w") as f:
@@ -538,6 +527,10 @@ def generate_schedule(Hx, Hz, D, output_csv, solver_tlim=120, odd_order_automorp
                 for r in sorted(TZ):
                     for q in sorted(TZ[r]): f.write(f"Z,{r},{q},{TZ[r][q]}\n")
             return True, status
+        else:
+            print(f"Lifted schedule failed validation: {conf} C1/C2 violations, {bad} C3 violations")
+    else:
+        print(f"No solution found, status={status}")
     return False, status
 
 def ladder(Hx, Hz, edges, autos, D, skip, above, tlim_step):
