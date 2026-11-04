@@ -34,7 +34,7 @@ def main():
     ap.add_argument("--shots", type=int, default=10000, help="Max shots per evaluation")
     ap.add_argument("--max_errors", type=int, default=100, help="Target errors per evaluation")
     ap.add_argument("--bpiter", type=int, default=10, help="Max BP iterations")
-    ap.add_argument("-p", "--probs", nargs="+", type=float, default=[2e-3, 3e-3, 1e-3, 5e-4, 1e-4], help="List of physical error probabilities to evaluate")
+    ap.add_argument("-p", "--probs", nargs="+", type=float, default=[3e-3, 2e-3, 1e-3, 5e-4, 1e-4], help="List of physical error probabilities to evaluate")
 
     #Plot
     ap.add_argument("--plot", action="store_true", help="Plot the results after the experiment completes")
