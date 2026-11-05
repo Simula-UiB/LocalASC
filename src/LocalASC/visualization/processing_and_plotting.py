@@ -11,7 +11,7 @@ from pathlib import Path
 
 def load_and_process_json(filepath):
     """
-    Parses the JSON lines output, aggregates by p and computes LER.
+    parse the JSON lines output, aggregate by p and compute LER.
     """
     rows = []
     with open(filepath, 'r') as f:
@@ -76,10 +76,23 @@ def load_and_process_json(filepath):
 
     return df.sort_values('p'), k, d
 
-def get_fit_params(df, k, d_circ):
+def filter_min_errors(df, min_errors):
+    """
+    keep rows with at least `min_errors` observed logical failures, summed over
+    the X- and Z-memory experiments
+    """
+    if min_errors is None:
+        return df
+    return df[(df['errors_x'] + df['errors_z']) >= min_errors]
+
+def get_fit_params(df, k, d_circ, min_errors=None):
+    """
+    obtains fit parameters as described in Section VI of the paper
+    df is the data frame, k is the code dimension and d_circ is the circuit distance (can also be estimation)
+    """
     # Filters out pL = 0 points for the fit
-    df_valid = df[df['total_pL'] > 0].copy()
-    
+    df_valid = filter_min_errors(df[df['total_pL'] > 0], min_errors).copy()
+
     log_p = np.log(df_valid['p'].values)
     pL = df_valid['total_pL'].values
     pL_err = df_valid['total_pL_err'].values
@@ -107,39 +120,67 @@ def get_fit_params(df, k, d_circ):
     print(f"Computed pseudo-threshold: {p_ps}")
     return p_ps, (c0, c1, c2), exponent
 
-def extrap(p, c, e): 
+def extrap(p, c, e):
     return (p**e) * np.exp(c[0] + c[1]*p + c[2]*p**2)
+
+def export_pgfplots_data(filepath, d_circ, name, out_dir, min_errors: int | None = 5,
+                         x_range=(9e-5, 0.01), n_fit_points=200):
+    """
+    Write the data points and the extrapolation curve as pgfplots CSV files,
+    using the same logic as plot_qec_results():
+        <out_dir>/<name>_data.csv : p, pL, pL_err 
+        <out_dir>/<name>_fit.csv  : p, pL
+    """
+    df, k, d = load_and_process_json(filepath)
+    df = filter_min_errors(df, min_errors)
+    p_ps, coeffs, exp = get_fit_params(df, k, d_circ)
+
+    x_min, x_max = x_range
+    df_data = df[(df['p'] >= x_min) & (df['p'] <= x_max) & (df['total_pL'] > 0)]
+    data = pd.DataFrame({
+        'p': df_data['p'],
+        'pL': df_data['total_pL'],
+        'pL_err': df_data['total_pL_err'],
+    })
+
+    sub_threshold_points = df[df['p'] < p_ps]['p']
+    stop_line_p = sub_threshold_points.max() if not sub_threshold_points.empty else p_ps
+    p_fit = np.logspace(np.log10(x_min), np.log10(stop_line_p), n_fit_points)
+    fit = pd.DataFrame({'p': p_fit, 'pL': extrap(p_fit, coeffs, exp)})
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    data.to_csv(out_dir / f"{name}_data.csv", index=False, float_format='%.6e')
+    fit.to_csv(out_dir / f"{name}_fit.csv", index=False, float_format='%.6e')
+    print(f"Wrote {out_dir / f'{name}_data.csv'} and {out_dir / f'{name}_fit.csv'}")
+    return data, fit
 
 ######################
 # Plotting functions #
 ######################
 
-def plot_qec_results(file_configs: list, save_path: str | Path | None = None):
+def plot_qec_results(file_configs: list, save_path: str | Path | None = None,
+                     min_errors: int | None = 5, title: str = 'Memory Experiment Results'):
     """
     Plot the results from run_sinter_experiment()
     """
     plt.rcParams.update({'font.size': 12})
-    plt.figure(figsize=(10, 8)) 
+    plt.figure(figsize=(10, 8))
 
     x_min, x_max = 9e-5, 0.01
     p_fine = np.logspace(np.log10(x_min), np.log10(x_max), 1000)
-
-    max_rel_err = 0.5
 
     for filepath, color, marker, lbl, d_circ in file_configs:
         df, k, d = load_and_process_json(filepath)
         if df.empty:
             continue
-            
+
+        # low-statistics cut for the fit and for the plotted points
+        df = filter_min_errors(df=df , min_errors=min_errors)
         p_ps, coeffs, exp = get_fit_params(df, k, d_circ)
-        
-        # Error Filtering
+
         df_plot = df[(df['p'] >= x_min) & (df['p'] <= x_max)].copy()
-        
-        safe_pL = np.maximum(df_plot['total_pL'], 1e-15)
-        relative_error = df_plot['total_pL_err'] / safe_pL
-        df_plot = df_plot[relative_error <= max_rel_err]
-        
+
         # Plot the scattered data points with error bars
         plt.errorbar(df_plot['p'], df_plot['total_pL'], yerr=df_plot['total_pL_err'], 
                      fmt=marker, color=color, capsize=3, alpha=0.8, label=lbl, markersize=6)
@@ -155,7 +196,7 @@ def plot_qec_results(file_configs: list, save_path: str | Path | None = None):
     plt.yscale('log')
     plt.xlabel('Physical Error Rate ($p$)', fontsize=14)
     plt.ylabel('Logical Error Rate ($p_L$)', fontsize=14)
-    plt.title('Memory Experiment Results', fontsize=16)
+    plt.title(title, fontsize=16)
     plt.grid(True, which="both", ls="--", alpha=0.5)
     plt.legend(loc="upper left")
     plt.tight_layout()
