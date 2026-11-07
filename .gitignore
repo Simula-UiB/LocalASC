@@ -186,7 +186,10 @@ __marimo__/
 # Results folder
 results/
 
-#png files
+#image files
 *.jpg
+
+#macOS
+.DS_Store
 
 #codes folder
