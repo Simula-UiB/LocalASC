@@ -85,13 +85,15 @@ def filter_min_errors(df, min_errors):
         return df
     return df[(df['errors_x'] + df['errors_z']) >= min_errors]
 
-def get_fit_params(df, k, d_circ): # , min_errors=None
+def get_fit_params(df, k, d_circ):
     """
     obtains fit parameters as described in Section VI of the paper
     df is the data frame, k is the code dimension and d_circ is the circuit distance (can also be estimation)
     """
     # Filters out pL = 0 points for the fit
-    df_valid = df[df['total_pL'] > 0].copy() # , min_errors
+    df_valid = df[df['total_pL'] > 0].copy()
+    if len(df_valid) < 3:
+        return None
 
     log_p = np.log(df_valid['p'].values)
     pL = df_valid['total_pL'].values
@@ -106,6 +108,8 @@ def get_fit_params(df, k, d_circ): # , min_errors=None
     p_ps = fsolve(lambda p: np.exp(poly(np.log(p))) - (1 - (1 - p)**k), 0.0055)[0]
     
     df_sub = df_valid[df_valid['p'] < p_ps]
+    if len(df_sub) < 3:
+        return None
     p_s = df_sub['p'].values
     pL_s = df_sub['total_pL'].values
     pL_err_s = df_sub['total_pL_err'].values
@@ -133,7 +137,10 @@ def export_pgfplots_data(filepath, d_circ, name, out_dir, min_errors: int | None
     """
     df, k, d = load_and_process_json(filepath)
     df = filter_min_errors(df, min_errors)
-    p_ps, coeffs, exp = get_fit_params(df, k, d_circ)
+    fit_params = get_fit_params(df, k, d_circ)
+    if fit_params is None:
+        raise ValueError(f"{name}: too few points with at least {min_errors} errors to fit.")
+    p_ps, coeffs, exp = fit_params
 
     x_min, x_max = x_range
     df_data = df[(df['p'] >= x_min) & (df['p'] <= x_max) & (df['total_pL'] > 0)]
@@ -177,7 +184,9 @@ def plot_qec_results(file_configs: list, save_path: str | Path | None = None,
 
         # low-statistics cut for the fit and for the plotted points
         df = filter_min_errors(df=df , min_errors=min_errors)
-        p_ps, coeffs, exp = get_fit_params(df, k, d_circ)
+        if df.empty:
+            print(f"{lbl}: no points with at least {min_errors} errors, nothing to plot.")
+            continue
 
         df_plot = df[(df['p'] >= x_min) & (df['p'] <= x_max)].copy()
 
@@ -185,6 +194,12 @@ def plot_qec_results(file_configs: list, save_path: str | Path | None = None,
         plt.errorbar(df_plot['p'], df_plot['total_pL'], yerr=df_plot['total_pL_err'], 
                      fmt=marker, color=color, capsize=3, alpha=0.8, label=lbl, markersize=6)
         
+        fit_params = get_fit_params(df, k, d_circ)
+        if fit_params is None:
+            print(f"{lbl}: too few points with at least {min_errors} errors, skipping the fit.")
+            continue
+        p_ps, coeffs, exp = fit_params
+
         # Plot Fitted Sub-threshold Curve
         sub_threshold_points = df[df['p'] < p_ps]['p']
         stop_line_p = sub_threshold_points.max() if not sub_threshold_points.empty else p_ps
