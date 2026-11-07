@@ -85,13 +85,13 @@ def filter_min_errors(df, min_errors):
         return df
     return df[(df['errors_x'] + df['errors_z']) >= min_errors]
 
-def get_fit_params(df, k, d_circ, min_errors=None):
+def get_fit_params(df, k, d_circ): # , min_errors=None
     """
     obtains fit parameters as described in Section VI of the paper
     df is the data frame, k is the code dimension and d_circ is the circuit distance (can also be estimation)
     """
     # Filters out pL = 0 points for the fit
-    df_valid = filter_min_errors(df[df['total_pL'] > 0], min_errors).copy()
+    df_valid = filter_min_errors(df[df['total_pL'] > 0]).copy() # , min_errors
 
     log_p = np.log(df_valid['p'].values)
     pL = df_valid['total_pL'].values
@@ -128,7 +128,7 @@ def export_pgfplots_data(filepath, d_circ, name, out_dir, min_errors: int | None
     """
     Write the data points and the extrapolation curve as pgfplots CSV files,
     using the same logic as plot_qec_results():
-        <out_dir>/<name>_data.csv : p, pL, pL_err 
+        <out_dir>/<name>_data.csv : p, total_pL, total_pL_err
         <out_dir>/<name>_fit.csv  : p, pL
     """
     df, k, d = load_and_process_json(filepath)
