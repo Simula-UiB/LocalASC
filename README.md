@@ -7,7 +7,7 @@ This repository contains the official implementation of **Local Automorphism-Awa
 - **/execution**: Command-line interface (CLI) scripts to run the core experiments, filtering pipelines, and table generation.
 - **/src**: The core Python library (`LocalASC`), containing the scheduling algorithms, circuit builder, and simulation routing.
 - **/codes**: Parity check matrices and code definitions.
-- **/results**: The default output directory for generated schedules (`.csv`), Stim circuits (`.stim`), Sinter decoding data (`.json`), and generated plots.
+- **/paper_results**: Raw logical-error counts behind the figures in the paper.
 - **/notebooks**: Jupyter notebooks for interactive, step-by-step methodology.
 
 ## Installation
@@ -91,7 +91,6 @@ python execution/runtime_table.py [specific_codes ...] [OPTIONS]
 - `--tlim`: Maximum time limit in seconds for full searches (default: 1800).
 - `--tlim_step`: CP-SAT limit in seconds per subgroup step when using the ladder policy (default: 60).
 - `--hybrid_cap`: CP-SAT limit in seconds on the first hybrid maxodd attempt (default: 10).
-
 - `--search_best`: Looks for the fastest policy of choosing the automorphism subgroup to generate a schedule.
 
 ## Paper results
