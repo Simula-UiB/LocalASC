@@ -139,8 +139,8 @@ def export_pgfplots_data(filepath, d_circ, name, out_dir, min_errors: int | None
     df_data = df[(df['p'] >= x_min) & (df['p'] <= x_max) & (df['total_pL'] > 0)]
     data = pd.DataFrame({
         'p': df_data['p'],
-        'pL': df_data['total_pL'],
-        'pL_err': df_data['total_pL_err'],
+        'total_pL': df_data['total_pL'],
+        'total_pL_err': df_data['total_pL_err'],
     })
 
     sub_threshold_points = df[df['p'] < p_ps]['p']
