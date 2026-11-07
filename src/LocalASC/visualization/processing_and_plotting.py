@@ -91,7 +91,7 @@ def get_fit_params(df, k, d_circ): # , min_errors=None
     df is the data frame, k is the code dimension and d_circ is the circuit distance (can also be estimation)
     """
     # Filters out pL = 0 points for the fit
-    df_valid = filter_min_errors(df[df['total_pL'] > 0]).copy() # , min_errors
+    df_valid = df[df['total_pL'] > 0].copy() # , min_errors
 
     log_p = np.log(df_valid['p'].values)
     pL = df_valid['total_pL'].values
