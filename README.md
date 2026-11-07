@@ -13,7 +13,7 @@ This repository contains the official implementation of **Local Automorphism-Awa
 
 ## Installation
 
-Clone the repository and install the required dependencies. The execution scripts and notebooks import the library directly from `src/`, so the package itself does not need to be installed.
+Clone the repository and install the required dependencies. Python 3.12 or newer is required. The execution scripts and notebooks import the library directly from `src/`, so the package itself does not need to be installed.
 
 ```bash
 git clone https://github.com/Simula-UiB/LocalASC.git
@@ -23,7 +23,7 @@ pip install -r requirements.txt
 
 ## Interactive Notebooks
 
-The `/notebooks` folder contains tutorials for hands-on exploration of the library's capabilities:
+The `/notebooks` folder contains tutorials for hands-on exploration of the library's capabilities. Running them also requires Jupyter (`pip install notebook`), which is not in `requirements.txt`.
 
 * **`circuit_builder_walkthrough.ipynb`**: Demonstrates the step-by-step process of loading binary CSS parity-check matrices, generating an optimal CNOT schedule using the CP-SAT solver, and constructing X- and Z-basis Stim memory circuits with circuit-level noise models.
 * **`simulation_tutorial.ipynb`**: Provides a complete QEC simulation workflow. It covers running a decoding experiment using `sinter`, aggregating the results, computing pseudo-thresholds, and utilizing the project's plotting tools to visualize logical error rate (LER) curves.
@@ -70,7 +70,11 @@ python execution/decoding_experiment.py <hx_path> <hz_path> <rounds> -p <prob1> 
 - `-D`: Alternatively, provide a target depth to automatically generate a schedule on the fly.
 - `--shots`: Maximum number of shots per noise level.
 - `--max_errors`: Target number of errors to collect before moving to the next noise level.
-- `--plot`: Generate and save a sub-threshold LER plot upon completion.
+- `--plot`: Plot the results after the experiment completes.
+- `--save_plot`: Save the plot as a JPG to `results/plots/sinter/`.
+- `--bpiter`: Maximum BP iterations (default: 10). The paper uses 1000.
+- `--shots`: Maximum number of shots per noise level (default: 10000).
+- `--max_errors`: Target number of errors to collect before moving to the next noise level (default: 100).
 
 ### 3. Runtime Table Generation (Table I)
 
