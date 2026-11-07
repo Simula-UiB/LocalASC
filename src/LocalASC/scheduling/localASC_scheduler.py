@@ -516,7 +516,7 @@ def generate_schedule(Hx, Hz, D, output_csv, solver_tlim=120):
 
     
     if vals is not None:
-        print(f"Found subgroup with {len(gens)} generators, |H|={norb}, status={status}")
+        print(f"Found subgroup |H|={len(_expand_closure(gens))}, {norb} orbits, status={status}")
         TX, TZ, conf, bad, _, _, _ = lift_validate(Hx, Hz, orb, vals)
         if conf == 0 and bad == 0:
             with open(output_csv, "w") as f:
