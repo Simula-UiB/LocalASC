@@ -30,7 +30,7 @@ CODES = {
     "18_n1225_k225_d6": ("18_n1225_k225_d6_Hx.txt", "18_n1225_k225_d6_Hz.txt"), 
 }
 
-POLICY_MAP = {"04_n36_k4_d4": "odd", "05_n36_k4_d6": "odd", "14_n180_k26_d6": "full"}
+# POLICY_MAP = {"04_n36_k4_d4": "odd", "05_n36_k4_d6": "odd", "14_n180_k26_d6": "full"}
 
 ALL_POLICIES = ["maxodd", "hybrid", "ladder", "full", "odd"]
 
@@ -145,10 +145,10 @@ def main():
         print("\n" + "="*50)
         print("SEARCH COMPLETE. NEW OPTIMAL POLICY MAP:")
         print("="*50)
-        print("POLICY_MAP = {")
-        for c, p in best_policies_found.items():
-            print(f'    "{c}": "{p}",')
-        print("}")
+        # print("POLICY_MAP = {")
+        # for c, p in best_policies_found.items():
+        #    print(f'    "{c}": "{p}",')
+        # print("}")
 
 if __name__ == "__main__":
     main()
