@@ -364,7 +364,7 @@ def solve_equivariant(Hx, Hz, orb, norb, D, tlim=120, orbit_domain=None, seed=No
 
     Returns (status_name, elapsed_seconds, values_or_None):
     status_name is CP-SAT's own StatusName ("OPTIMAL","FEASIBLE","INFEASIBLE",
-    "UNKNOWN") in the normal case, or "VACUOUS" if the found solution is not a feasible orbit assignment.
+    "UNKNOWN") in the normal case, or "VACUOUS" if the subgroup fails the vertex test, returned before solving.
     values_or_None is the list of solved tau_o values (indexed to match V) when a solution was found, else None.
     """
     #Initialize edges in the Tanner Graph of the code
@@ -504,7 +504,7 @@ def lift_validate(Hx, Hz, orb, vals):
 
 def generate_schedule(Hx, Hz, D, output_csv, solver_tlim=120):
     """
-    Generates a CNOT schedule using local_asc_generic with a timeout.
+    Generates a CNOT schedule using LocalASC with a timeout.
     Use a hybrid-like policy to first try the maxodd subgroup, then ladder over all other subgroups if that fails.
     Writes the schedule to output_csv if successful, and returns (True, status) or (False, status) if not.
     """
