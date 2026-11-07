@@ -187,7 +187,6 @@ __marimo__/
 results/
 
 #png files
-*.png
+*.jpg
 
 #codes folder
-codes/
