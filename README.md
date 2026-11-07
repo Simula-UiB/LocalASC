@@ -103,13 +103,12 @@ python execution/runtime_table.py [specific_codes ...] [OPTIONS]
 If you use this code or methodology in your research, please cite our work:
 
 ```bibtex
-@misc{rocha2026localautomorphismawaresyndromecompilation,
-      title={Local Automorphism-Aware Syndrome Compilation for General Quantum LDPC Codes}, 
-      author={Eugenio Durazo Rocha and Olai Å. Mostad and Hsuan-Yin Lin and Eirik Rosnes},
-      year={2026},
-      eprint={2609.40319},
-      archivePrefix={arXiv},
-      primaryClass={quant-ph},
-      url={https://arxiv.org/abs/2609.40319}, 
+@Unpublished{DurazoRochaMostadLinRosnes26_1sub,
+  author = {Durazo Rocha, Eugenio and Mostad, Olai {\AA}. and Lin, Hsuan-Yin and Rosnes, Eirik},
+  note   = {arXiv:2609.40319v1 [quant-ph]},
+  title  = {Local Automorphism-Aware Syndrome Compilation for General Quantum {LDPC} Codes},
+  month  = {September},
+  year   = {2026},
+  doi    = {10.48550/arxiv.2609.40319},
 }
 ```
