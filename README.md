@@ -68,8 +68,6 @@ python execution/decoding_experiment.py <hx_path> <hz_path> <rounds> -p <prob1> 
 **Key Arguments:**
 - `-schedule`: Path to a specific schedule CSV to build circuits from.
 - `-D`: Alternatively, provide a target depth to automatically generate a schedule on the fly.
-- `--shots`: Maximum number of shots per noise level.
-- `--max_errors`: Target number of errors to collect before moving to the next noise level.
 - `--plot`: Plot the results after the experiment completes.
 - `--save_plot`: Save the plot as a JPG to `results/plots/sinter/`.
 - `--bpiter`: Maximum BP iterations (default: 10). The paper uses 1000.
