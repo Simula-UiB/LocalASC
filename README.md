@@ -94,6 +94,10 @@ python execution/runtime_table.py [specific_codes ...] [OPTIONS]
 
 - `--search_best`: Looks for the fastest policy of choosing the automorphism subgroup to generate a schedule.
 
+## Paper results
+
+`paper_results/BB_72_12_6/` contains the raw logical-error counts underlying the [[72,12,6]] figure, in JSON Lines. `localASC` is our depth-7 schedule, and `official` is the schedule of Bravyi et al. Runs at the same `p` are pooled when plotting. The code is in `codes/BB_Codes/BB_72_12_6/`.
+
 ## Citation
 
 If you use this code or methodology in your research, please cite our work:
