@@ -8,6 +8,7 @@ This repository contains the official implementation of **Local Automorphism-Awa
 - **/src**: The core Python library (`LocalASC`), containing the scheduling algorithms, circuit builder, and simulation routing.
 - **/codes**: Parity check matrices and code definitions.
 - **/paper_results**: Raw logical-error counts behind the figures in the paper.
+- **/results**: The default output directory for generated schedules (`.csv`), Stim circuits (`.stim`), Sinter decoding data (`.json`), and generated plots. It is created when you run the scripts and is not tracked by git.
 - **/notebooks**: Jupyter notebooks for interactive, step-by-step methodology.
 
 ## Installation
