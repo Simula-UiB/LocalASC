@@ -98,7 +98,28 @@ python execution/runtime_table.py [specific_codes ...] [OPTIONS]
 
 ## Paper results
 
-`paper_results/BB_72_12_6/` contains the raw logical-error counts underlying the [[72,12,6]] figure, in JSON Lines. `localASC` is our depth-7 schedule, and `official` is the schedule of Bravyi et al. Runs at the same `p` are pooled when plotting. The code is in `codes/BB_Codes/BB_72_12_6/`.
+`paper_results/` contains the raw logical-error counts behind the [[48,4,8]] and [[72,12,6]] figures, in JSON Lines (one run per line). Runs at the same `p` are pooled when plotting.
+
+**[[48,4,8]]: `paper_results/48_4_8/`**
+
+| Label | Schedule | Depth |
+|---|---|---|
+| `localASC` | Our schedule | 6 |
+| `filtered_fullASC` | Schedule chosen by the filtering step with the Auto-Stabilizer Check | 6 |
+| `ATB_official` | The coset-code schedule of Aydin Tamo and Barg | 7 |
+
+`filtering/filtered_48_4_8_filtering.csv` gives the logical error rate and its standard error for each schedule tested in the filtering step (10^5 shots per basis, 8 rounds), ranked from worst to best as in the plot.
+
+The code is in `codes/Table1_PCMs/07_n48_k4_d8_Hx.txt` and `codes/Table1_PCMs/07_n48_k4_d8_Hz.txt`.
+
+**[[72,12,6]]: `paper_results/BB_72_12_6/`**
+
+| Label | Schedule | Depth |
+|---|---|---|
+| `localASC` | Our schedule | 7 |
+| `official` | The schedule of Bravyi et al. | 7 |
+
+The code is in `codes/BB_Codes/BB_72_12_6/`.
 
 ## Citation
 
