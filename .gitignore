@@ -183,11 +183,13 @@ __marimo__/
 # json files
 *.json
 
-# Results folder
-results/
-
 #png files
 *.png
+
+# Results folder (everything except paper_results, which is tracked in full)
+results/*
+!results/paper_results/
+!results/paper_results/**
 
 #codes folder
 codes/

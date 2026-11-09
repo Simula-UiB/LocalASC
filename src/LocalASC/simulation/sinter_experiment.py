@@ -2,6 +2,7 @@ import time
 import json
 import multiprocessing
 from pathlib import Path
+import numpy as np
 import stim
 import sinter
 from stimbposd import SinterDecoder_BPOSD
@@ -43,7 +44,7 @@ def evaluate_circuit_fast(base_circ_x, base_circ_z, p, d, num_shots, max_errors,
         custom_decoders=custom_decoders, #type: ignore
         max_shots=num_shots,
         max_errors=max_errors,
-        print_progress=False  # Keep console clean during massive loops
+        print_progress=False  # Keep console clean 
     ))
 
     results = {stat.json_metadata['basis']: stat for stat in stats_list}
@@ -53,11 +54,25 @@ def evaluate_circuit_fast(base_circ_x, base_circ_z, p, d, num_shots, max_errors,
 
     raw_x = nx_e / nx_s if nx_s > 0 else 1.0
     raw_z = nz_e / nz_s if nz_s > 0 else 1.0
-    
+
     pl_x = 1.0 - (1.0 - raw_x) ** (1.0 / d)
     pl_z = 1.0 - (1.0 - raw_z) ** (1.0 / d)
-    
-    return 1.0 - (1.0 - pl_z) * (1.0 - pl_x), nx_e, nz_e
+    ler = 1.0 - (1.0 - pl_z) * (1.0 - pl_x)
+
+    # standard error computation (for relative error)
+    def _pl_err(n_e, n_s, raw):
+        if n_s == 0:
+            return 0.0
+        safe_raw = min(raw, 1.0 - 1e-10)
+        p_fail = max(n_e, 1) / n_s
+        err_raw = np.sqrt(p_fail * (1 - p_fail) / n_s)
+        return (1.0 / d) * (1 - safe_raw) ** (1.0 / d - 1) * err_raw
+
+    pl_err_x = _pl_err(nx_e, nx_s, raw_x)
+    pl_err_z = _pl_err(nz_e, nz_s, raw_z)
+    ler_err = float(np.sqrt(((1 - pl_z) * pl_err_x) ** 2 + ((1 - pl_x) * pl_err_z) ** 2))
+
+    return ler, ler_err, nx_e, nz_e, nx_s, nz_s
 
 def build_sinter_task_memory_experiment(circuit : stim.Circuit, physical_error_probs : list[float], basis : str) -> list[sinter.Task]:
     tasks = []

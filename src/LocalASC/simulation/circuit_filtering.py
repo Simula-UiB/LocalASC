@@ -86,9 +86,10 @@ def run_filtering_pipeline(
         circ_z.to_file(str(circ_z_path))
 
         # Evaluate
-        ler, err_x, err_z = evaluate_circuit_fast(circ_x, circ_z, eval_p, rounds, eval_shots, eval_errors, max_bp_iter=10)
+        ler, ler_err, err_x, err_z, shots_x, shots_z = evaluate_circuit_fast(
+            circ_x, circ_z, eval_p, rounds, eval_shots, eval_errors, max_bp_iter=10)
 
-        print(f"Evaluated LER: {ler:.3e} (X errs: {err_x}, Z errs: {err_z})")
+        print(f"Evaluated LER: {ler:.3e} ± {ler_err:.1e} (X errs: {err_x}, Z errs: {err_z})")
 
         # Compare & Save Winner
         step_result = {
@@ -96,8 +97,11 @@ def run_filtering_pipeline(
             "depth": int(D),
             "eval_p": eval_p,
             "total_ler": ler,
+            "total_ler_err": ler_err,
             "errors_x": err_x,
             "errors_z": err_z,
+            "shots_x": shots_x,
+            "shots_z": shots_z,
             "timestamp": time.time() - global_start_time
         }
 

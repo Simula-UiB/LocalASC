@@ -228,14 +228,24 @@ def plot_filtering_results(summary_file: Path, save_path: Path | None = None) ->
         return
 
     names = [pt['step_name'] for pt in data_points]
-    lers = [pt['total_ler'] for pt in data_points]
+    lers = np.array([pt['total_ler'] for pt in data_points])
+    
+    ler_errs = np.array([pt.get('total_ler_err', 0.0) for pt in data_points])
     x_positions = np.array(range(len(names))) + 1
+
+    # Asymmetric bars: keep the lower end strictly positive for the log axis
+    yerr = np.vstack([np.minimum(ler_errs, lers * (1 - 1e-3)), ler_errs])
 
     plt.rcParams.update({'font.size': 12})
     plt.figure(figsize=(12, 6))
-    
+
     plt.bar(x_positions, lers, color='#4C72B0', alpha=0.6, edgecolor='black', label='LER (Bar)')
+    plt.errorbar(x_positions, lers, yerr=yerr, fmt='none', ecolor='black',
+                 elinewidth=1.2, capsize=4, label='LER $\\pm 1\\sigma$')
     plt.plot(x_positions, lers, color='#C44E52', marker='o', linewidth=2, markersize=6, label='LER Trend')
+
+    if not np.any(ler_errs > 0):
+        print("No 'total_ler_err' found in summary; plotting without error bars.")
 
     plt.xticks(x_positions, rotation=45, ha="right")
     plt.yscale('log')
