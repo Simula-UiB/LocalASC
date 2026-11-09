@@ -183,8 +183,11 @@ __marimo__/
 # json files
 *.json
 
-#png files
-*.png
+#image files
+*.jpg
+
+#macOS
+.DS_Store
 
 # Results folder (everything except paper_results, which is tracked in full)
 results/*
@@ -192,4 +195,3 @@ results/*
 !results/paper_results/**
 
 #codes folder
-codes/

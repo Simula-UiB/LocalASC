@@ -7,12 +7,13 @@ This repository contains the official implementation of **Local Automorphism-Awa
 - **/execution**: Command-line interface (CLI) scripts to run the core experiments, filtering pipelines, and table generation.
 - **/src**: The core Python library (`LocalASC`), containing the scheduling algorithms, circuit builder, and simulation routing.
 - **/codes**: Parity check matrices and code definitions.
-- **/results**: The default output directory for generated schedules (`.csv`), Stim circuits (`.stim`), Sinter decoding data (`.json`), and generated plots.
+- **/paper_results**: Raw logical-error counts behind the figures in the paper.
+- **/results**: The default output directory for generated schedules (`.csv`), Stim circuits (`.stim`), Sinter decoding data (`.json`), and generated plots. It is created when you run the scripts and is not tracked by git.
 - **/notebooks**: Jupyter notebooks for interactive, step-by-step methodology.
 
 ## Installation
 
-Clone the repository and install the required dependencies. The execution scripts and notebooks import the library directly from `src/`, so the package itself does not need to be installed.
+Clone the repository and install the required dependencies. Python 3.12 or newer is required. The execution scripts and notebooks import the library directly from `src/`, so the package itself does not need to be installed.
 
 ```bash
 git clone https://github.com/Simula-UiB/LocalASC.git
@@ -22,7 +23,7 @@ pip install -r requirements.txt
 
 ## Interactive Notebooks
 
-The `/notebooks` folder contains tutorials for hands-on exploration of the library's capabilities:
+The `/notebooks` folder contains tutorials for hands-on exploration of the library's capabilities. Running them also requires Jupyter (`pip install notebook`), which is not in `requirements.txt`.
 
 * **`circuit_builder_walkthrough.ipynb`**: Demonstrates the step-by-step process of loading binary CSS parity-check matrices, generating an optimal CNOT schedule using the CP-SAT solver, and constructing X- and Z-basis Stim memory circuits with circuit-level noise models.
 * **`simulation_tutorial.ipynb`**: Provides a complete QEC simulation workflow. It covers running a decoding experiment using `sinter`, aggregating the results, computing pseudo-thresholds, and utilizing the project's plotting tools to visualize logical error rate (LER) curves.
@@ -67,9 +68,11 @@ python execution/decoding_experiment.py <hx_path> <hz_path> <rounds> -p <prob1> 
 **Key Arguments:**
 - `-schedule`: Path to a specific schedule CSV to build circuits from.
 - `-D`: Alternatively, provide a target depth to automatically generate a schedule on the fly.
-- `--shots`: Maximum number of shots per noise level.
-- `--max_errors`: Target number of errors to collect before moving to the next noise level.
-- `--plot`: Generate and save a sub-threshold LER plot upon completion.
+- `--plot`: Plot the results after the experiment completes.
+- `--save_plot`: Save the plot as a JPG to `results/plots/sinter/`.
+- `--bpiter`: Maximum BP iterations (default: 10). The paper uses 1000.
+- `--shots`: Maximum number of shots per noise level (default: 10000).
+- `--max_errors`: Target number of errors to collect before moving to the next noise level (default: 100).
 
 ### 3. Runtime Table Generation (Table I)
 
@@ -91,21 +94,23 @@ python execution/runtime_table.py [specific_codes ...] [OPTIONS]
 - `--tlim`: Maximum time limit in seconds for full searches (default: 1800).
 - `--tlim_step`: CP-SAT limit in seconds per subgroup step when using the ladder policy (default: 60).
 - `--hybrid_cap`: CP-SAT limit in seconds on the first hybrid maxodd attempt (default: 10).
-
 - `--search_best`: Looks for the fastest policy of choosing the automorphism subgroup to generate a schedule.
+
+## Paper results
+
+`paper_results/BB_72_12_6/` contains the raw logical-error counts underlying the [[72,12,6]] figure, in JSON Lines. `localASC` is our depth-7 schedule, and `official` is the schedule of Bravyi et al. Runs at the same `p` are pooled when plotting. The code is in `codes/BB_Codes/BB_72_12_6/`.
 
 ## Citation
 
 If you use this code or methodology in your research, please cite our work:
 
 ```bibtex
-@misc{rocha2026localautomorphismawaresyndromecompilation,
-      title={Local Automorphism-Aware Syndrome Compilation for General Quantum LDPC Codes}, 
-      author={Eugenio Durazo Rocha and Olai Å. Mostad and Hsuan-Yin Lin and Eirik Rosnes},
-      year={2026},
-      eprint={2609.40319},
-      archivePrefix={arXiv},
-      primaryClass={quant-ph},
-      url={https://arxiv.org/abs/2609.40319}, 
+@Unpublished{DurazoRochaMostadLinRosnes26_1sub,
+  author = {Durazo Rocha, Eugenio and Mostad, Olai {\AA}. and Lin, Hsuan-Yin and Rosnes, Eirik},
+  note   = {arXiv:2609.40319v1 [quant-ph]},
+  title  = {Local Automorphism-Aware Syndrome Compilation for General Quantum {LDPC} Codes},
+  month  = {September},
+  year   = {2026},
+  doi    = {10.48550/arxiv.2609.40319},
 }
 ```
