@@ -104,9 +104,9 @@ python execution/runtime_table.py [specific_codes ...] [OPTIONS]
 
 | Label | Schedule | Depth |
 |---|---|---|
-| `localASC` | Our schedule | 6 |
+| `localASC` | Our schedule, chosen by the filtering step | 6 |
 | `filtered_fullASC` | Schedule chosen by the filtering step with the Auto-Stabilizer Check | 6 |
-| `ATB_official` | The coset-code schedule of Aydin Tamo and Barg | 7 |
+| `ATB_official` | The coset-code schedule of Aydin, Tamo, and Barg | 7 |
 
 `filtering/filtered_48_4_8_filtering.csv` gives the logical error rate and its standard error for each schedule tested in the filtering step (10^5 shots per basis, 8 rounds), ranked from worst to best as in the plot.
 
