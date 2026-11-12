@@ -128,7 +128,7 @@ If you use this code or methodology in your research, please cite our work:
 ```bibtex
 @Unpublished{DurazoRochaMostadLinRosnes26_1sub,
   author = {Durazo Rocha, Eugenio and Mostad, Olai {\AA}. and Lin, Hsuan-Yin and Rosnes, Eirik},
-  note   = {arXiv:2609.40319v1 [quant-ph]},
+  note   = {arXiv:2609.40319v2 [quant-ph]},
   title  = {Local Automorphism-Aware Syndrome Compilation for General Quantum {LDPC} Codes},
   month  = {September},
   year   = {2026},
